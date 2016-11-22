@@ -29,8 +29,14 @@ lbd = 1E-4;10
 
 &sgd
 
-tau0 = 5E3
-kappa = 0.55
+fixed = true
+
+lr = 1E-3
+
+#tau0 = 5E3
+#kappa = 0.55
+#C = 1
+
 MAXITER = 1E5
 Nbatch = 10
 

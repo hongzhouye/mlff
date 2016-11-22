@@ -59,13 +59,13 @@ void _read_inp_ (string& fname, LATTICE& lat, MLFFTRAIN& fft, SGD& sgd)
     {
         while (getline (input, line))
         {
-            if (line.empty ())  continue;
+            if (line.empty () || line[0] == '#')    continue;
 
             if (_uppercase_ (line) == "&LATTICE")
             {
                 while (getline (input, line))
                 {
-                    if (line.empty ())  continue;
+                    if (line.empty () || line[0] == '#')    continue;
                     if (_uppercase_ (line) == "&END")   break;
 
                     spline = _split_eq_ (line);
@@ -120,7 +120,7 @@ void _read_inp_ (string& fname, LATTICE& lat, MLFFTRAIN& fft, SGD& sgd)
             {
                 while (getline (input, line))
                 {
-                    if (line.empty ())  continue;
+                    if (line.empty () || line[0] == '#')    continue;
                     if (_uppercase_ (line) == "&END")   break;
 
                     spline = _split_eq_ (line);
@@ -150,14 +150,21 @@ void _read_inp_ (string& fname, LATTICE& lat, MLFFTRAIN& fft, SGD& sgd)
             {
                 while (getline (input, line))
                 {
-                    if (line.empty ())  continue;
+                    if (line.empty () || line[0] == '#')    continue;
                     if (_uppercase_ (line) == "&END")   break;
 
                     spline = _split_eq_ (line);
-                    if (_uppercase_ (spline[0]) == "TAU0")
+                    if (_uppercase_ (spline[0]) == "FIXED")
+                        sgd.fixed = (_uppercase_ (spline[1]) == "TRUE") ?
+                            (true) : (false);
+                    else if (sgd.fixed && _uppercase_ (spline[0]) == "LR")
+                        sgd.lr = stod (spline[1]);
+                    else if (!sgd.fixed && _uppercase_ (spline[0]) == "TAU0")
                         sgd.tau0 = stod (spline[1]);
-                    else if (_uppercase_ (spline[0]) == "KAPPA")
+                    else if (!sgd.fixed && _uppercase_ (spline[0]) == "KAPPA")
                         sgd.kappa = stod (spline[1]);
+                    else if (!sgd.fixed && _uppercase_ (spline[0]) == "C")
+                        sgd.C = stod (spline[1]);
                     else if (_uppercase_ (spline[0]) == "MAXITER")
                         sgd.MAXITER = (int) stod (spline[1]);
                     else if (_uppercase_ (spline[0]) == "NBATCH")

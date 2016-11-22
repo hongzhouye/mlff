@@ -27,7 +27,10 @@ void SGD::_SGD_ ()
         for (int I = 0; I < Nbatch; I++)
         {
             iter ++;
-            learning_rate = pow (tau0 + iter, -kappa);
+            if (fixed)
+                learning_rate = lr;
+            else
+                learning_rate = pow (tau0 + C * iter, -kappa);
 
             batch_start = I * sample_per_batch;
             batch_end = batch_start + sample_per_batch;

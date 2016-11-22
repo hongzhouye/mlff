@@ -11,7 +11,8 @@ class SGD
         void _form_GH_ (const vVectorXd&, MatrixXd&, MatrixXd&);
     public:
 //  read from input file
-        double tau0, kappa;
+        bool fixed;
+        double tau0, kappa, C, lr;
         int MAXITER, Nbatch;
 
 //  from MLFFTRAIN
