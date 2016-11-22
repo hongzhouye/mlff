@@ -1,0 +1,33 @@
+&lattice
+
+Neta = 8
+eta = 1;50
+
+lat_len = 16.23;16.23;16.23
+lat_ang = 90.0;90.0;90.0
+
+Rc = 8.1
+
+inp_path = input/training/random
+out_path = output
+
+&end
+
+&training
+
+Ntrain = 1000
+k = 5
+
+Nlbd = 6
+lbd = 1E-4;10
+
+&end
+
+&sgd
+
+tau0 = 5E3
+kappa = 0.85
+MAXITER = 1E5
+Nbatch = 10
+
+&end

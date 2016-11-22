@@ -1,0 +1,6 @@
+# C++ intermediates
+*.o
+
+# binary
+mlff
+
