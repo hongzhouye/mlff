@@ -1,3 +1,5 @@
+eig_path=${PWD}
+
 CXX=g++
 CXXFLAGS=-Ofast -std=c++11 -w
 CXXINC=${eig_path}
