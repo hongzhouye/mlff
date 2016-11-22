@@ -18,8 +18,6 @@ int main (int argc, char *argv[])
     SGD sgd;
     _read_inp_ (fname_inp, lat, fft, sgd);
     lat._fingerprint_ ();
-    lat._write_VF_ ();
-    lat._shuffle_fingerprint_ ();
     fft._init_ ();
     fft._train_ (lat, sgd);
 

@@ -4,3 +4,8 @@
 # binary
 mlff
 
+# output
+output/*
+
+# temperary data file
+*.dat

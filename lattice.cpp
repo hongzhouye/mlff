@@ -45,6 +45,7 @@ iv1 _abs_kth_largest_ (const vector<T>& x, int k = 1)
             }
         X[max_ind[i]] = T(-200);
     }
+	return max_ind;
 }
 
 double LATTICE::_periodic_ (dv1& dR_new, const dv1& dR, double Rc)
@@ -160,6 +161,8 @@ void LATTICE::_fingerprint_ ()
         vvVectorXd V0 = _R_to_V_ (R[i], Rc, eta);
         V.insert (V.end (), V0.begin (), V0.end ());
     }
+    if (shuf)   _shuffle_fingerprint_ ();
+    if (write)  _write_VF_ ();
 }
 
 template <typename T>

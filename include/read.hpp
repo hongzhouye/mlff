@@ -21,7 +21,7 @@
 #include "sgd.hpp"
 
 void _read_inp_ (string&, LATTICE&, MLFFTRAIN&, SGD&);
-void _read_data_ (string&, LATTICE&, int max_num = 25);
+void _read_data_ (string&, int, int, LATTICE&);
 vvVectorXd _R_to_V_ (const vVectorXd&, double, const dv1&);
 
 #endif

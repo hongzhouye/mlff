@@ -95,9 +95,19 @@ void _read_inp_ (string& fname, LATTICE& lat, MLFFTRAIN& fft, SGD& sgd)
                     else if (_uppercase_ (spline[0]) == "RC")
                         lat.Rc = stod (spline[1]);
                     else if (_uppercase_ (spline[0]) == "INP_PATH")
-                        _read_data_ (spline[1], lat);
+                    {
+                        vs temp = _split_ (spline[1], ';');
+                        _read_data_ (
+                            temp[0], stoi (temp[1]), stoi (temp[2]), lat);
+                    }
+                    else if (_uppercase_ (spline[0]) == "WRITE")
+                        lat.write = (_uppercase_ (spline[1]) == "TRUE") ?
+                            (true) : (false);
                     else if (_uppercase_ (spline[0]) == "OUT_PATH")
                         lat.out_path = spline[1];
+                    else if (_uppercase_ (spline[0]) == "SHUFFLE")
+                        lat.shuf = (_uppercase_ (spline[1]) == "TRUE") ?
+                            (true) : (false);
                     else
                     {
                         cout << "[Error] unknown mode: " << line << endl
@@ -174,13 +184,13 @@ void _read_inp_ (string& fname, LATTICE& lat, MLFFTRAIN& fft, SGD& sgd)
     input.close ();
 }
 
-void _read_data_ (string& path, LATTICE& lat, int max_num)
+void _read_data_ (string& path, int start, int end, LATTICE& lat)
 {
     string line;
     vs fname_set, spline;
-    for (int i = 0; i < max_num; i++)
+    for (int i = start; i <= end; i++)
     {
-        string fname (path + "/" + "data" + to_string (i + 1) + ".dat");
+        string fname (path + "/" + "data" + to_string (i) + ".dat");
         fname_set.push_back (fname);
 
         vVectorXd R, F;

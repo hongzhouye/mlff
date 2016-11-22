@@ -8,8 +8,12 @@ lat_ang = 90.0;90.0;90.0
 
 Rc = 8.1
 
-inp_path = input/training/random
+inp_path = input/training/md;18;24
+
+write = false
 out_path = output
+
+shuffle = true
 
 &end
 
@@ -26,7 +30,7 @@ lbd = 1E-4;10
 &sgd
 
 tau0 = 5E3
-kappa = 0.85
+kappa = 0.55
 MAXITER = 1E5
 Nbatch = 10
 

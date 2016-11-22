@@ -9,7 +9,7 @@ void MLFFTRAIN::_init_ ()
     _norm_gen_ (seed, Ntrain, alpha, 0., 1. / sqrt ((double) Ntrain));
 
 //  set gamma to zero
-    gamma = 0.;
+    gamma = 0.1;
 }
 
 #define UP(i,N) (i>=N)?(i-N):(i)

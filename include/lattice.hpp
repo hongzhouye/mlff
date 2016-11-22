@@ -17,6 +17,7 @@ class LATTICE
         dv1 lat_len, lat_ang;
         double Rc;
         string out_path;
+        bool shuf, write;
 
 //  read from data file
         vvVectorXd R;

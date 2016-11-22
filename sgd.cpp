@@ -21,6 +21,7 @@ void SGD::_SGD_ ()
 {
     int iter = 0, sample_per_batch = Ntest / Nbatch;
     double learning_rate;
+    printf ("#iter\tMAE\t\t|alpha|\t\tgamma\n");
     while (iter < MAXITER)
     {
         for (int I = 0; I < Nbatch; I++)
@@ -42,7 +43,8 @@ void SGD::_SGD_ ()
             alpha -= learning_rate * (g_alp + lambda * alpha);
             gamma -= learning_rate * g_gam;
         }
-        printf ("%6d\t%9.6f\n", iter, _MAE_ ());
+        printf ("%6d\t%9.6f\t%9.6f\t%9.6f\n",
+            iter, _MAE_ (), alpha.norm (), gamma);
     }
 }
 
