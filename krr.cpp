@@ -77,7 +77,7 @@ vMatrixXd KRR::_form_kernel_ (const vvVectorXd& Vt,
     return Kt;
 }
 
-vVectorXd KRR::_form_kernel_ (const const vVectorXd& Vt,
+vVectorXd KRR::_form_kernel_ (const vVectorXd& Vt,
     const vvVectorXd& Vb, const vVectorXd& Fb)
 {
     vvVectorXd Vtp; Vtp.push_back (Vt);
