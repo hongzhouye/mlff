@@ -30,7 +30,7 @@ class KRR
 
         vMatrixXd _form_kernel_ (const vvVectorXd& Vt,
             const vvVectorXd& Vb, const vVectorXd& Fb);
-        vVectorXd _form_kernel_ (const const vVectorXd& Vt,
+        vVectorXd _form_kernel_ (const vVectorXd& Vt,
             const vvVectorXd& Vb, const vVectorXd& Fb);
         void _solve_ ();
 };
