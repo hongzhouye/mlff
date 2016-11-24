@@ -27,9 +27,13 @@ class LATTICE
         vvVectorXd V;
 
 //  member function
+        void _print_ ();
         void _fingerprint_ ();
         void _shuffle_fingerprint_ ();
         void _write_VF_ ();
+
+        dv1 _rdf_per_cell_ (const vVectorXd& R, double Rc, const dv1& bin);
+        void _gen_rdf_ (int nbin);
 };
 
 #endif

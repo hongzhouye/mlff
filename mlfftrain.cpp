@@ -1,17 +1,5 @@
 #include "include/mlfftrain.hpp"
 
-void MLFFTRAIN::_init_ ()
-{
-//  random initialization for alpha
-    alpha.setZero (Ntrain);
-    unsigned seed;
-    seed = chrono::system_clock::now ().time_since_epoch ().count ();
-    _norm_gen_ (seed, Ntrain, alpha, 0., 1. / sqrt ((double) Ntrain));
-
-//  set gamma to zero
-    gamma = 0.1;
-}
-
 #define UP(i,N) (i>=N)?(i-N):(i)
 #define DOWN(i,N) (i<0)?(i+N):(i)
 void _k_fold_partition_ (const VectorXd& v, VectorXd& vp, int k, int K)
@@ -32,33 +20,39 @@ void _k_fold_partition_ (const vector<T>& v, vector<T>& vp, vector<T>& vr,
 #undef UP
 #undef DOWN
 
-void MLFFTRAIN::_train_ (const LATTICE& lat, SGD& sgd)
+void MLFFTRAIN::_krr_basis_ (const LATTICE& lat)
 {
-    vvVectorXd Vtrain;  Vtrain.assign (lat.V.begin (), lat.V.begin () + Ntrain);
-    vVectorXd Ftrain;   Ftrain.assign (lat.F.begin (), lat.F.begin () + Ntrain);
+    for (int i = 0; i < Nbasis; i++)
+    {
+        krr.Vbasis.push_back (lat.V[i]);    krr.Fbasis.push_back (lat.F[i]);
+    }
+}
 
+void MLFFTRAIN::_train_ (const LATTICE& lat)
+{
+    _krr_basis_ (lat);
+
+    vvVectorXd Vtrain_all;
+    Vtrain_all.assign (lat.V.begin () + Nbasis, lat.V.begin () + Nbasis + Ntrain);
+    vVectorXd Ftrain_all;
+    Ftrain_all.assign (lat.F.begin () + Nbasis, lat.F.begin () + Nbasis + Ntrain);
+
+    printf ("lambda\tvalid MAE\n");
     for (auto i = lbd_set.begin (); i < lbd_set.end (); i++)
     {
         double lbd = *i;
-        double loss = 0.;
+        double valid_MAE = 0.;
         for (int k = 0; k < K; k++)
         {
-            int Np = Ntrain / K * (K - 1);
-            VectorXd params;
-            _k_fold_partition_ (alpha, params, k, K);
-            params.conservativeResize (Np + 1);
-            params(Np) = gamma;
+            krr._clear_all_ ();
+            _k_fold_partition_ (Vtrain_all, krr.Vtrain, krr.Vvalid, k, K);
+            _k_fold_partition_ (Ftrain_all, krr.Ftrain, krr.Fvalid, k, K);
 
-            vvVectorXd Vbasis, Vtest;
-            _k_fold_partition_ (Vtrain, Vbasis, Vtest, k, K);
-            vVectorXd Fbasis, Ftest;
-            _k_fold_partition_ (Ftrain, Fbasis, Ftest, k, K);
-
-            sgd._init_ (params, lbd, Vbasis, Fbasis, Vtest, Ftest);
-            sgd._SGD_ ();
-            loss += sgd._loss_ ();
+            krr._init_ (lbd, gamma);
+            krr._solve_ ();
+            valid_MAE += krr._MAE_ (krr.Vvalid, krr.Fvalid);
         }
-        printf ("lbd = %5.3e\tloss = %9.6f\n", lbd, loss / K);
+        printf ("%5.3e\t%9.6f\n", lbd, valid_MAE / K);
     }
 }
 

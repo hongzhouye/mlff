@@ -2,9 +2,8 @@
 #define _MLFFTRAIN_HPP_
 
 #include "utils.hpp"
-#include "normdist.hpp"
 #include "lattice.hpp"
-#include "sgd.hpp"
+#include "krr.hpp"
 
 /*************************************************************/
 /*       CLASS: Machine Learning Force Field - Training      */
@@ -21,7 +20,7 @@ class MLFFTRAIN
 {
     public:
 //  from input
-        int K, Neta, Ntrain, Nlbd;
+        int K, Neta, Nbasis, Ntrain, Nlbd;
         dv1 eta, lbd_set;
         double Rc;
 
@@ -31,9 +30,12 @@ class MLFFTRAIN
         vVectorXd F;
         vvVectorXd V;
 
+//  Kernel ridge regression class
+        KRR krr;
+
 //  member function
-        void _init_ ();
-        void _train_ (const LATTICE&, SGD&);
+        void _krr_basis_ (const LATTICE&);
+        void _train_ (const LATTICE&);
         void _write_VF_ ();
 };
 

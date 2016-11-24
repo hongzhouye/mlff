@@ -154,6 +154,13 @@ vvVectorXd LATTICE::_R_to_V_ (const vVectorXd& R, double Rc, const dv1& eta)
     return V;
 }
 
+void LATTICE::_print_ ()
+{
+    cout << "#eta grid:" << endl;
+    for (int i = 0; i < Neta; i++)  printf ("%5.3e  ", eta[i]);
+    cout << endl;
+}
+
 void LATTICE::_fingerprint_ ()
 {
     for (int i = 0; i < R.size (); i++)
@@ -187,6 +194,61 @@ void LATTICE::_shuffle_fingerprint_ ()
 
     _shuffle_ (indexes, V);
     _shuffle_ (indexes, F);
+}
+
+dv1 _count_ (const dv2& dist, double Rc, const dv1& bin)
+{
+    int N = dist.size (), nbin = bin.size ();
+    double dr = Rc / (nbin - 1);
+    dv1 rdf;
+    for (int I = 0; I < nbin - 1; I++)
+    {
+        iv1 count;  count.assign (N, 0);
+        for (int i = 0; i < N; i++)
+            for (auto j = dist[i].begin (); j < dist[i].end (); j++)
+                if (*j >= bin[I] && *j < bin[I + 1])  count[i] ++;
+        int sum = 0;
+        for (int n : count)    sum += n;
+        rdf.push_back (sum / (double) N);
+    }
+    return rdf;
+}
+
+dv1 LATTICE::_rdf_per_cell_ (const vVectorXd& R, double Rc, const dv1& bin)
+{
+    int N = R.size (), M = R[0].size ();
+//  generate dist matrix and directional dist matrices (dR)
+    MatrixXd dist;  vMatrixXd dR;
+    _gen_dist_mat_ (R, dR, dist);
+//  generate neighboring element list
+    dv2 ndist;  dv3 ndR;
+    _gen_neighbor_list_ (ndR, ndist, dR, dist, Rc);
+    dv1 rdf = _count_ (ndist, Rc, bin);
+    return rdf;
+}
+
+dv1 _gen_mesh_ (double min, double max, int n)
+{
+    dv1 x;  double dx = (max - min) / (n - 1.);
+    for (int i = 0; i < n; i++) x.push_back (dx * i);
+    return x;
+}
+
+void LATTICE::_gen_rdf_ (int nbin)
+{
+    dv1 bin = _gen_mesh_ (0., Rc, nbin);
+    dv1 rdf_per_cell, rdf;  rdf.assign (nbin, 0.);
+    for (int i = 0; i < R.size (); i++)
+    {
+        rdf_per_cell = _rdf_per_cell_ (R[i], Rc, bin);
+        cout << "rdf.size = " << rdf_per_cell.size () << endl;
+        for (int j = 0; j < nbin; j++)  rdf[j] += rdf_per_cell[j];
+    }
+    for (int j = 0; j < nbin; j++)
+    {
+        rdf[j] /= (double) R.size ();
+        printf ("%5.3f\t%9.6f\n", bin[j], rdf[j]);
+    }
 }
 
 void LATTICE::_write_VF_ ()

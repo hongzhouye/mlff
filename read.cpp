@@ -49,7 +49,7 @@ vs _split_eq_ (string line)
     return nv;
 }
 
-void _read_inp_ (string& fname, LATTICE& lat, MLFFTRAIN& fft, SGD& sgd)
+void _read_inp_ (string& fname, LATTICE& lat, MLFFTRAIN& fft)
 {
     string line;
     vs spline;
@@ -71,7 +71,7 @@ void _read_inp_ (string& fname, LATTICE& lat, MLFFTRAIN& fft, SGD& sgd)
                     spline = _split_eq_ (line);
                     if (_uppercase_ (spline[0]) == "NETA")
                     {
-                        lat.Neta = stoi (spline[1]);
+                        lat.Neta = (int) stod (spline[1]);
                         lat.eta.assign (fft.Neta, 0.);
                     }
                     else if (_uppercase_ (spline[0]) == "ETA")
@@ -124,55 +124,30 @@ void _read_inp_ (string& fname, LATTICE& lat, MLFFTRAIN& fft, SGD& sgd)
                     if (_uppercase_ (line) == "&END")   break;
 
                     spline = _split_eq_ (line);
-                    if (_uppercase_ (spline[0]) == "NTRAIN")
-                        fft.Ntrain = stoi (spline[1]);
+                    if (_uppercase_ (spline[0]) == "NBASIS")
+                        fft.Nbasis = (int) stod (spline[1]);
+                    else if (_uppercase_ (spline[0]) == "NTRAIN")
+                        fft.Ntrain = (int) stod (spline[1]);
                     else if (_uppercase_ (spline[0]) == "K")
-                        fft.K = stoi (spline[1]);
+                        fft.K = (int) stod (spline[1]);
+                    else if (_uppercase_ (spline[0]) == "GAMMA")
+                        fft.gamma = stod (spline[1]);
                     else if (_uppercase_ (spline[0]) == "NLBD")
                     {
-                        fft.Nlbd = stoi (spline[1]);
+                        fft.Nlbd = (int) stod (spline[1]);
                         fft.lbd_set.assign (fft.Nlbd, 0.);
                     }
                     else if (_uppercase_ (spline[0]) == "LBD")
                     {
                         vs temp = _split_ (spline[1], ';');
-                        _log_space_ (fft.lbd_set, fft.Nlbd, stod (temp[0]), stod (temp[1]));
+                        _log_space_ (fft.lbd_set, fft.Nlbd,
+                            stod (temp[0]), stod (temp[1]));
                     }
                     else
                     {
                         cout << "[Error] unknown mode: " << line << endl
                             << "Please check the TRAINING card." << endl;
                         exit (1);
-                    }
-                }
-            }
-            else if (_uppercase_ (line) == "&SGD")
-            {
-                while (getline (input, line))
-                {
-                    if (line.empty () || line[0] == '#')    continue;
-                    if (_uppercase_ (line) == "&END")   break;
-
-                    spline = _split_eq_ (line);
-                    if (_uppercase_ (spline[0]) == "FIXED")
-                        sgd.fixed = (_uppercase_ (spline[1]) == "TRUE") ?
-                            (true) : (false);
-                    else if (sgd.fixed && _uppercase_ (spline[0]) == "LR")
-                        sgd.lr = stod (spline[1]);
-                    else if (!sgd.fixed && _uppercase_ (spline[0]) == "TAU0")
-                        sgd.tau0 = stod (spline[1]);
-                    else if (!sgd.fixed && _uppercase_ (spline[0]) == "KAPPA")
-                        sgd.kappa = stod (spline[1]);
-                    else if (!sgd.fixed && _uppercase_ (spline[0]) == "C")
-                        sgd.C = stod (spline[1]);
-                    else if (_uppercase_ (spline[0]) == "MAXITER")
-                        sgd.MAXITER = (int) stod (spline[1]);
-                    else if (_uppercase_ (spline[0]) == "NBATCH")
-                        sgd.Nbatch = stoi (spline[1]);
-                    else
-                    {
-                        cout << "[Error] unknown mode: " << line << endl
-                            << "Please check the SGD card." << endl;
                     }
                 }
             }
