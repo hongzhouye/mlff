@@ -20,22 +20,12 @@ void _k_fold_partition_ (const vector<T>& v, vector<T>& vp, vector<T>& vr,
 #undef UP
 #undef DOWN
 
-void MLFFTRAIN::_krr_basis_ (const LATTICE& lat)
-{
-    for (int i = 0; i < Nbasis; i++)
-    {
-        krr.Vbasis.push_back (lat.V[i]);    krr.Fbasis.push_back (lat.F[i]);
-    }
-}
-
 void MLFFTRAIN::_train_ (const LATTICE& lat)
 {
-    _krr_basis_ (lat);
-
     vvVectorXd Vtrain_all;
-    Vtrain_all.assign (lat.V.begin () + Nbasis, lat.V.begin () + Nbasis + Ntrain);
+    Vtrain_all.assign (lat.V.begin (), lat.V.begin () + Ntrain);
     vVectorXd Ftrain_all;
-    Ftrain_all.assign (lat.F.begin () + Nbasis, lat.F.begin () + Nbasis + Ntrain);
+    Ftrain_all.assign (lat.F.begin (), lat.F.begin () + Ntrain);
 
     printf ("lambda\tvalid MAE\n");
     for (auto i = lbd_set.begin (); i < lbd_set.end (); i++)

@@ -3,10 +3,9 @@
 void KRR::_init_ (double lbd, double gm)
 {
     lambda = lbd;   gamma = gm;
-    Nbasis = Vbasis.size ();
     Ntrain = Vtrain.size ();
     Nvalid = Vvalid.size ();
-    M = Fbasis[0].rows ();
+    M = Ftrain[0].rows ();
 }
 
 void KRR::_clear_all_ ()
@@ -15,23 +14,20 @@ void KRR::_clear_all_ ()
     Vvalid.clear ();    Fvalid.clear ();
 }
 
-VectorXd KRR::_predict_F_ (const vVectorXd& Vt)
+inline VectorXd KRR::_predict_F_ (const vVectorXd& Vt)
 {
-    vVectorXd Kt = _form_kernel_ (Vt, Vbasis, Fbasis);
-    VectorXd pred_F (M);
-    for (int mu = 0; mu < M; mu++)  pred_F(mu) = Kt[mu].dot (alpha);
-    return pred_F;
+    return _form_kernel_ (Vtrain, Vt) * alpha;
 }
 
 double KRR::_MAE_ (const vvVectorXd& V, const vVectorXd& F)
 {
-    int N = V.size ();
+    int N = V.size (), M = F[0].rows ();
     double MAE = 0.;
     for (int i = 0; i < N; i++)
     {
         VectorXd pred_F = _predict_F_ (V[i]);
         MAE += (pred_F - F[i]).array ().abs ().sum ()
-            / (double) F[i].rows ();
+            / (double) M;
     }
     return MAE / (double) N;
 }
@@ -58,72 +54,70 @@ inline double _kernel_ (const VectorXd& v1, const VectorXd& v2, double gamma)
     return exp (- gamma * (v1 - v2).squaredNorm ());
 }
 
-vMatrixXd KRR::_form_kernel_ (const vvVectorXd& Vt,
-    const vvVectorXd& Vb, const vVectorXd& Fb)
+MatrixXd KRR::_form_kernel_ (const vvVectorXd& Vt)
 {
-    int Nt = Vt.size (), Nb = Vb.size (), M = Fb[0].size ();
-    Kt.clear ();
-    for (int mu = 0; mu < M; mu++)
+    int Nt = Vt.size ();
+
+    MatrixXd Kt (Nt * M, Nt * M);
+    MatrixXd K; K.setZero (Nt, Nt);
+    int mu, nu, i, j;
+    for (mu = 0; mu < M; mu++) for (nu = 0; nu <= mu; nu++)
     {
-        MatrixXd Ktmu;  Ktmu.setZero (Nt, Nb);
-        for (int i = 0; i < Nt; i++)
-        {
-            for (int j = 0; j < Nb; j++)
-                Ktmu(i, j) = _kernel_ (Vt[i][mu], Vb[j][mu], gamma)
-                    * Fb[j](mu);
-        }
-        Kt.push_back (Ktmu);
+        if (mu == nu)
+            for (i = 0; i < Nt; i++)    for (j = 0; j <= i; j++)
+                K(i, j) = K(j, i) = _kernel_ (Vt[i][mu], Vt[j][nu], gamma);
+        else
+            for (i = 0; i < Nt; i++)    for (j = 0; j < Nt; j++)
+                K(i, j) = _kernel_ (Vt[i][mu], Vt[j][nu], gamma);
+
+        Kt.block (mu * Nt, nu * Nt, Nt, Nt) = K;
+        if (mu != nu)   Kt.block (nu * Nt, mu * Nt, Nt, Nt) = K.transpose ();
     }
+
     return Kt;
 }
 
-vVectorXd KRR::_form_kernel_ (const vVectorXd& Vt,
-    const vvVectorXd& Vb, const vVectorXd& Fb)
+MatrixXd KRR::_form_kernel_ (const vvVectorXd& Vt, const vVectorXd& Vtest)
 {
-    vvVectorXd Vtp; Vtp.push_back (Vt);
-    vMatrixXd Kt = _form_kernel_ (Vtp, Vb, Fb);
-    vVectorXd Ktp;
-    for (int mu = 0; mu < Kt.size (); mu++)
-        Ktp.push_back (Kt[mu].row (0));
-    return Ktp;
+    int Nt = Vt.size ();
+
+    MatrixXd ktest (Nt * M, M);
+    VectorXd k; k.setZero (Nt);
+    int mu, nu, i;
+    for (mu = 0; mu < M; mu++) for (nu = 0; nu < M; nu++)
+    {
+        for (i = 0; i < Nt; i++)
+            k(i) = _kernel_ (Vtest[mu], Vt[i][nu], gamma);
+        ktest.block (mu * Nt, nu, Nt, 1) = k;
+    }
+    ktest.transposeInPlace ();
+    return ktest;
+}
+
+VectorXd KRR::_form_force_vec_ (const vVectorXd& Ft)
+{
+    int Nt = Ft.size ();
+
+    VectorXd F(M * Nt), f(Nt);
+    int mu, i;
+    for (mu = 0; mu < M; mu++)
+    {
+        for (i = 0; i < Nt; i++)    f(i) = Ft[i](mu);
+        F.block (mu * Nt, 0, Nt, 1) = f;
+    }
+    return F;
 }
 
 void KRR::_solve_ ()
 {
-    /*high_resolution_clock::time_point t1, t2, t1p, t2p;
-    t1 = high_resolution_clock::now ();*/
-    vMatrixXd Kt = _form_kernel_ (Vtrain, Vbasis, Fbasis);
-    /*t2 = high_resolution_clock::now ();
-    duration<double> dt_kernel = duration_cast<duration<double> >(t2 - t1);
-    cout << "kernel: " << dt_kernel.count () << endl;*/
+    MatrixXd Kt = _form_kernel_ (Vtrain);
+    //cout << "Kt:\n" << Kt << endl << endl;
+    VectorXd Ft = _form_force_vec_ (Ftrain);
+    //cout << "Ft:\n" << Ft << endl << endl;
 
-    MatrixXd A; A.setZero (Nbasis, Nbasis);
-    VectorXd b; b.setZero (Nbasis);
-    /*t1 = high_resolution_clock::now ();
-    duration<double> dt_form = duration_cast<duration<double> >(t1 - t1);;*/
-    for (int mu = 0; mu < M; mu++)
-    {
-        //t1p = high_resolution_clock::now ();
-        A.noalias () += Kt[mu].transpose () * Kt[mu];
-        //t2p = high_resolution_clock::now ();
-        VectorXd Ft;    Ft.setZero (Ntrain);
-
-        for (int i = 0; i < Ntrain; i++) Ft(i) = Ftrain[i](mu);
-
-        b.noalias () += Kt[mu].transpose () * Ft;
-        //dt_form += duration_cast<duration<double> >(t2p - t1p);
-    }
-    A += lambda * Ntrain * MatrixXd::Identity (Nbasis, Nbasis);
-    /*cout << "mat: " << dt_form.count () << endl;
-    t2 = high_resolution_clock::now ();
-    duration<double> dt_calc = duration_cast<duration<double> >(t2 - t1);
-    cout << "calc: " << dt_calc.count () << endl;
-
-    t1 = high_resolution_clock::now ();*/
-    alpha = A.colPivHouseholderQr().solve (b);
-    /*t2 = high_resolution_clock::now ();
-    duration<double> dt_solve = duration_cast<duration<double> >(t2 - t1);
-    cout << "solve: " << dt_solve.count () << endl;*/
+    alpha = (Kt + lambda * Ntrain *
+        MatrixXd::Identity (Ntrain * M, Ntrain * M)).
+        colPivHouseholderQr ().solve (Ft);
 
     printf ("lbd = %5.3e\ttrain MAE = %9.6f\tvalid MAE = %9.6f\n",
         lambda, _MAE_ (Vtrain, Ftrain), _MAE_ (Vvalid, Fvalid));

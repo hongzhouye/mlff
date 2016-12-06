@@ -1,16 +1,16 @@
 &lattice
 
-Neta = 10
-eta = 0.5;50
+Neta = 8
+eta = 1;50
 
 lat_len = 16.23;16.23;16.23
 lat_ang = 90.0;90.0;90.0
 
 Rc = 8.1
 
-inp_path = input/training/all;1;40
+inp_path = input/training/all;1;10
 
-write = false
+write = true 
 out_path = output
 
 shuffle = true
@@ -21,12 +21,12 @@ shuffle = true
 
 Nbasis = 1000
 
-Ntrain = 6000
+Ntrain = 1000
 k = 5
 
-gamma = 3
+gamma = 5
 
-Nlbd = 10
-lbd = 1E-14;1E-6
+Nlbd = 5
+lbd = 1E-0;1E5
 
 &end

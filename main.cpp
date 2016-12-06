@@ -16,8 +16,6 @@ int main (int argc, char *argv[])
     LATTICE lat;
     MLFFTRAIN fft;
     _read_inp_ (fname_inp, lat, fft);
-    //lat._gen_rdf_ (100);
-    //lat._print_ ();
     lat._fingerprint_ ();
     fft._train_ (lat);
 

@@ -18,20 +18,18 @@ class KRR
         vVectorXd Fbasis, Ftrain, Fvalid;
         vvVectorXd Vbasis, Vtrain, Vvalid;
         int Nbasis, Ntrain, Nvalid, M;
-        vMatrixXd Kt;
 
 //  member function
         void _init_ (double, double);
         void _clear_all_ ();
-        VectorXd _predict_F_ (const vVectorXd&);
+        inline VectorXd _predict_F_ (const vVectorXd&);
         double _loss_ (const vvVectorXd& V, const vVectorXd& F);
         double _MAE_ (const vvVectorXd&, const vVectorXd&);
         inline double _penalized_loss_ (const vvVectorXd& V, const vVectorXd& F);
 
-        vMatrixXd _form_kernel_ (const vvVectorXd& Vt,
-            const vvVectorXd& Vb, const vVectorXd& Fb);
-        vVectorXd _form_kernel_ (const vVectorXd& Vt,
-            const vvVectorXd& Vb, const vVectorXd& Fb);
+        MatrixXd _form_kernel_ (const vvVectorXd& Vt);
+        MatrixXd _form_kernel_ (const vvVectorXd& Vt, const vVectorXd& Vtest);
+        VectorXd _form_force_vec_ (const vVectorXd& Ft);
         void _solve_ ();
 };
 
