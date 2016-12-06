@@ -24,7 +24,7 @@ Nbasis = 1000
 Ntrain = 6000
 k = 5
 
-gamma = 20
+gamma = 3
 
 Nlbd = 10
 lbd = 1E-14;1E-6

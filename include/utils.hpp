@@ -10,9 +10,11 @@
 #include <chrono>
 #include <numeric>
 #include <algorithm>
+#include <chrono>
 
 using namespace Eigen;
 using namespace std;
+using namespace std::chrono;
 
 typedef vector<string> vs;
 typedef vector<int> iv1;

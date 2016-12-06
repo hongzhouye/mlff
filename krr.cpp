@@ -90,18 +90,40 @@ vVectorXd KRR::_form_kernel_ (const vVectorXd& Vt,
 
 void KRR::_solve_ ()
 {
+    /*high_resolution_clock::time_point t1, t2, t1p, t2p;
+    t1 = high_resolution_clock::now ();*/
     vMatrixXd Kt = _form_kernel_ (Vtrain, Vbasis, Fbasis);
+    /*t2 = high_resolution_clock::now ();
+    duration<double> dt_kernel = duration_cast<duration<double> >(t2 - t1);
+    cout << "kernel: " << dt_kernel.count () << endl;*/
+
     MatrixXd A; A.setZero (Nbasis, Nbasis);
     VectorXd b; b.setZero (Nbasis);
+    /*t1 = high_resolution_clock::now ();
+    duration<double> dt_form = duration_cast<duration<double> >(t1 - t1);;*/
     for (int mu = 0; mu < M; mu++)
     {
-        A += Kt[mu].transpose () * Kt[mu];
+        //t1p = high_resolution_clock::now ();
+        A.noalias () += Kt[mu].transpose () * Kt[mu];
+        //t2p = high_resolution_clock::now ();
         VectorXd Ft;    Ft.setZero (Ntrain);
+
         for (int i = 0; i < Ntrain; i++) Ft(i) = Ftrain[i](mu);
-        b += Kt[mu].transpose () * Ft;
+
+        b.noalias () += Kt[mu].transpose () * Ft;
+        //dt_form += duration_cast<duration<double> >(t2p - t1p);
     }
     A += lambda * Ntrain * MatrixXd::Identity (Nbasis, Nbasis);
+    /*cout << "mat: " << dt_form.count () << endl;
+    t2 = high_resolution_clock::now ();
+    duration<double> dt_calc = duration_cast<duration<double> >(t2 - t1);
+    cout << "calc: " << dt_calc.count () << endl;
+
+    t1 = high_resolution_clock::now ();*/
     alpha = A.colPivHouseholderQr().solve (b);
+    /*t2 = high_resolution_clock::now ();
+    duration<double> dt_solve = duration_cast<duration<double> >(t2 - t1);
+    cout << "solve: " << dt_solve.count () << endl;*/
 
     printf ("lbd = %5.3e\ttrain MAE = %9.6f\tvalid MAE = %9.6f\n",
         lambda, _MAE_ (Vtrain, Ftrain), _MAE_ (Vvalid, Fvalid));
