@@ -121,7 +121,14 @@ void _read_inp_ (string& fname, LATTICE& lat, MLFFTRAIN& fft)
                 while (getline (input, line))
                 {
                     if (line.empty () || line[0] == '#')    continue;
-                    if (_uppercase_ (line) == "&END")   break;
+                    if (_uppercase_ (line) == "&END")
+                        if (fft.Ntrain + fft.Ntest <= lat.V.size ())    break;
+                        else
+                        {
+                            cout << "[Error] Ntrain + Ntest should be less "
+                                << "the total number of data points!" << endl;
+                            exit (1);
+                        }
 
                     spline = _split_eq_ (line);
                     if (_uppercase_ (spline[0]) == "NTEST")

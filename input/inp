@@ -22,7 +22,7 @@ shuffle = true
 
 &training
 
-Ntest = 500
+Ntest = 2000
 
 Ntrain = 1500
 k = 5
