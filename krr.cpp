@@ -164,14 +164,8 @@ void KRR::_solve_ (string solver)
     Atrain = _V_to_A_ (Vtrain_new);
     Xtrain = _form_X_ (Vtrain_new, Atrain);
 
-    /*_fancy_print_ ("check V (PRL)", 2);
-    for (int i = 0; i < Ntrain; i++)
-        cout << i << ":\n" << Xtrain[i] << endl << endl;*/
-
     MatrixXd Kt = _form_kernel_ (Xtrain, Xtrain);
-    //cout << "Kt:\n" << Kt << endl << endl;
     MatrixXd Ft = _form_force_mat_ (Ftrain, Atrain);
-    //cout << "Ft:\n" << Ft << endl << endl;
 
     if (solver == "CPHQ")
         alpha = (Kt + lambda * Ntrain * MatrixXd::Identity (Ntrain, Ntrain)).

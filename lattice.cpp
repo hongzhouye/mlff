@@ -124,24 +124,6 @@ vvVectorXd LATTICE::_R_to_V_ (const vVectorXd& R, double Rc, const dv1& eta)
     dv2 ndist;  dv3 ndR;
     _gen_neighbor_list_ (ndR, ndist, dR, dist, Rc);
 
-    /*_fancy_print_ ("check num of neighbors", 2);
-    for (int i = 0; i < ndist.size (); i++)
-        cout << i << ": " << ndist[i].size () << endl;*/
-
-    /*_fancy_print_ ("check sum rule", 2);
-    for (int i = 0; i < 4; i++)
-    {
-        dv1 sumdR;  sumdR.assign (M, 0.);
-        for (int j = 0; j < ndR[i].size (); j++)
-            for (int mu = 0; mu < M; mu++)
-                sumdR[mu] += ndR[i][j][mu] / ndist[i][j];
-
-        printf ("i = %d:\n", i);
-        for (int mu = 0; mu < M; mu++)
-            printf ("%9.6e\t", sumdR[mu]);
-        printf ("\n");
-    }*/
-
     vvVectorXd V;
     for (int i = 0; i < N; i++)
     {

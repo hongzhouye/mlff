@@ -52,15 +52,6 @@ void MLFFTRAIN::_train_ (const LATTICE& lat)
             _k_fold_partition_ (Vtrain_all, krr.Vtrain, krr.Vvalid, k, K);
             _k_fold_partition_ (Ftrain_all, krr.Ftrain, krr.Fvalid, k, K);
 
-            /*_fancy_print_ ("check V (IJQC)", 2);
-            for (int i = 0; i < krr.Vtrain.size (); i++)
-            {
-                cout << i << ": " << krr.Vtrain[i][0].transpose () << endl;
-                cout << i << ": " << krr.Vtrain[i][1].transpose () << endl;
-                cout << i << ": " << krr.Vtrain[i][2].transpose () << endl;
-                cout << endl;
-            }*/
-
             krr._init_ (lbd, gamma);
             krr._solve_ ("HQ");
             valid_MAE += krr._MAE_ (krr.Vvalid, krr.Fvalid);
