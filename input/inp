@@ -10,7 +10,7 @@ lat_len = 16.23;16.23;16.23
 lat_ang = 90.0;90.0;90.0
 
 # cutoff radius
-Rc = 6
+Rc = 5
 
 # input path and input file range
 #inp_path = input/training/random;16;25
@@ -30,7 +30,7 @@ shuffle = true
 &training
 
 # size of test set
-Ntest = 500
+Ntest = 2000
 
 # size of training set
 Ntrain = 2000

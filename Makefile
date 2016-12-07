@@ -1,7 +1,7 @@
 eig_path=${PWD}
 
-CXX=g++-6
-CXXFLAGS=-Ofast -std=c++11 -w -msse2 -mavx -mfma -fopenmp #-framework Accelerate
+CXX=g++
+CXXFLAGS=-Ofast -std=c++11 -w -msse2 -mavx #-mfma -fopenmp #-framework Accelerate
 CXXINC=${eig_path}
 
 mlff: main.o krr.o mlfftrain.o lattice.o read.o utils.o #normdist.o

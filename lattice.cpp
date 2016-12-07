@@ -12,7 +12,7 @@ void _gen_dist_mat_ (const vVectorXd& R, vMatrixXd& dR, MatrixXd& dist)
         {
             for (int mu = 0; mu < M; mu++)
             {
-                double delta = R[j][mu] - R[i][mu];
+                double delta = R[j](mu) - R[i](mu);
                 dR[mu](i, j) = delta;   dR[mu](j, i) = -dR[mu](i, j);
                 dist(i, j) += delta * delta;
             }
