@@ -1,34 +1,47 @@
 &lattice
 
+# eta grid
 Neta = 8
 eta = 1;50
 
+# lattice parameters in the order
+# a;b;c and alpha;beta;gamma
 lat_len = 16.23;16.23;16.23
 lat_ang = 90.0;90.0;90.0
 
+# cutoff radius
 Rc = 6
 
+# input path and input file range
 inp_path = input/training/random;16;25
 #inp_path = input/training/md;26;75
 #inp_path = input/training/all;1;40
 #inp_path = input/sanity_check;0;0
 
+# if true, write fingerprints to out_path
 write = true 
 out_path = output
 
+# if true, shuffle the input data [RECOMMENDED]
 shuffle = true 
 
 &end
 
 &training
 
+# size of test set
 Ntest = 2000
 
+# size of training set
 Ntrain = 1500
+
+# k-fold cross-validation
 k = 5
 
+# parameter for RBF kernel
 gamma = 0.1
 
+# 2-norm regularization parameter grid
 Nlbd = 8
 lbd = 1E-14;1E-7
 
