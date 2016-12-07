@@ -17,6 +17,7 @@ int main (int argc, char *argv[])
     MLFFTRAIN fft;
     _read_inp_ (fname_inp, lat, fft);
     lat._fingerprint_ ();
+    //lat._gen_rdf_ (200);
     fft._train_ (lat);
 
     return 0;

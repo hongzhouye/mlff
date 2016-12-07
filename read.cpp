@@ -124,8 +124,8 @@ void _read_inp_ (string& fname, LATTICE& lat, MLFFTRAIN& fft)
                     if (_uppercase_ (line) == "&END")   break;
 
                     spline = _split_eq_ (line);
-                    if (_uppercase_ (spline[0]) == "NBASIS")
-                        fft.Nbasis = (int) stod (spline[1]);
+                    if (_uppercase_ (spline[0]) == "NTEST")
+                        fft.Ntest = (int) stod (spline[1]);
                     else if (_uppercase_ (spline[0]) == "NTRAIN")
                         fft.Ntrain = (int) stod (spline[1]);
                     else if (_uppercase_ (spline[0]) == "K")

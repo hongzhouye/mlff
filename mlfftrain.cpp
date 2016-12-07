@@ -20,29 +20,60 @@ void _k_fold_partition_ (const vector<T>& v, vector<T>& vp, vector<T>& vr,
 #undef UP
 #undef DOWN
 
+double _mean_ (const vVectorXd& Ft)
+{
+    int N = Ft.size (), M = Ft[0].rows ();
+    double mean = 0.;
+    for (int i = 0; i < N; i++)
+        mean += Ft[i].array ().abs ().sum () / (double) M;
+    return mean / (double) N;
+}
+
 void MLFFTRAIN::_train_ (const LATTICE& lat)
 {
-    vvVectorXd Vtrain_all;
+    vvVectorXd Vtrain_all, Vtest;
     Vtrain_all.assign (lat.V.begin (), lat.V.begin () + Ntrain);
-    vVectorXd Ftrain_all;
+    Vtest.assign (lat.V.begin () + Ntrain, lat.V.begin () + Ntrain + Ntest);
+    vVectorXd Ftrain_all, Ftest;
     Ftrain_all.assign (lat.F.begin (), lat.F.begin () + Ntrain);
+    Ftest.assign (lat.F.begin () + Ntrain, lat.F.begin () + Ntrain + Ntest);
 
-    printf ("lambda\tvalid MAE\n");
+    double Ftest_ave = _mean_ (Ftest);
+
+    printf ("lambda\t\tvalid MAE\ttest MAE\ttest MARE\n");
     for (auto i = lbd_set.begin (); i < lbd_set.end (); i++)
     {
         double lbd = *i;
         double valid_MAE = 0.;
+//  k-fold cross-validation
         for (int k = 0; k < K; k++)
         {
             krr._clear_all_ ();
             _k_fold_partition_ (Vtrain_all, krr.Vtrain, krr.Vvalid, k, K);
             _k_fold_partition_ (Ftrain_all, krr.Ftrain, krr.Fvalid, k, K);
 
+            /*_fancy_print_ ("check V (IJQC)", 2);
+            for (int i = 0; i < krr.Vtrain.size (); i++)
+            {
+                cout << i << ": " << krr.Vtrain[i][0].transpose () << endl;
+                cout << i << ": " << krr.Vtrain[i][1].transpose () << endl;
+                cout << i << ": " << krr.Vtrain[i][2].transpose () << endl;
+                cout << endl;
+            }*/
+
             krr._init_ (lbd, gamma);
-            krr._solve_ ();
+            krr._solve_ ("HQ");
             valid_MAE += krr._MAE_ (krr.Vvalid, krr.Fvalid);
         }
-        printf ("%5.3e\t%9.6f\n", lbd, valid_MAE / K);
+//  overall train
+        krr._clear_all_ ();
+        krr.Vtrain = Vtrain_all;    krr.Ftrain = Ftrain_all;
+        krr._init_ (lbd, gamma);
+        krr._solve_ ("HQ");
+
+        double test_MAE = krr._MAE_ (Vtest, Ftest);
+        printf ("%5.3e\t%9.6f\t%9.6f\t%9.6f\n",
+            lbd, valid_MAE / K, test_MAE, test_MAE / Ftest_ave);
     }
 }
 

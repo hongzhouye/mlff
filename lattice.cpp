@@ -38,7 +38,7 @@ iv1 _abs_kth_largest_ (const vector<T>& x, int k = 1)
     {
         T max = T(-100);
         for (int j = 0; j < N; j++)
-            if (_abs_ (X[j]) > max)
+            if (_abs_ (X[j]) > max && _abs_ (X[j]) < 200)
             {
                 max = _abs_ (X[j]);
                 max_ind[i] = j;
@@ -124,6 +124,24 @@ vvVectorXd LATTICE::_R_to_V_ (const vVectorXd& R, double Rc, const dv1& eta)
     dv2 ndist;  dv3 ndR;
     _gen_neighbor_list_ (ndR, ndist, dR, dist, Rc);
 
+    /*_fancy_print_ ("check num of neighbors", 2);
+    for (int i = 0; i < ndist.size (); i++)
+        cout << i << ": " << ndist[i].size () << endl;*/
+
+    /*_fancy_print_ ("check sum rule", 2);
+    for (int i = 0; i < 4; i++)
+    {
+        dv1 sumdR;  sumdR.assign (M, 0.);
+        for (int j = 0; j < ndR[i].size (); j++)
+            for (int mu = 0; mu < M; mu++)
+                sumdR[mu] += ndR[i][j][mu] / ndist[i][j];
+
+        printf ("i = %d:\n", i);
+        for (int mu = 0; mu < M; mu++)
+            printf ("%9.6e\t", sumdR[mu]);
+        printf ("\n");
+    }*/
+
     vvVectorXd V;
     for (int i = 0; i < N; i++)
     {
@@ -142,9 +160,9 @@ vvVectorXd LATTICE::_R_to_V_ (const vVectorXd& R, double Rc, const dv1& eta)
 //  iterate over neighbors
                     double r = ndist[i][j], x = ndR[i][j][mu];
                     Vimu_eta += exp (- (r * r / (et * et)))
-                        * _cut_off_f_(r,Rc) * x / r;
+                        * _cut_off_f_(r, Rc) * x / r;
                 }
-                Vimu[ind] = Vimu_eta;
+                Vimu(ind) = Vimu_eta;
             }
             Vi.push_back (Vimu);
         }
@@ -190,6 +208,7 @@ void LATTICE::_shuffle_fingerprint_ ()
 {
     iv1 indexes (V.size ());
     iota (indexes.begin (), indexes.end (), 0);
+    srand(time(0));
     random_shuffle (indexes.begin (), indexes.end ());
 
     _shuffle_ (indexes, V);
@@ -241,13 +260,14 @@ void LATTICE::_gen_rdf_ (int nbin)
     for (int i = 0; i < R.size (); i++)
     {
         rdf_per_cell = _rdf_per_cell_ (R[i], Rc, bin);
-        cout << "rdf.size = " << rdf_per_cell.size () << endl;
+        //cout << "rdf.size = " << rdf_per_cell.size () << endl;
         for (int j = 0; j < nbin; j++)  rdf[j] += rdf_per_cell[j];
     }
     for (int j = 0; j < nbin; j++)
     {
         rdf[j] /= (double) R.size ();
         printf ("%5.3f\t%9.6f\n", bin[j], rdf[j]);
+        fflush (0);
     }
 }
 

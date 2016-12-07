@@ -20,7 +20,7 @@ class MLFFTRAIN
 {
     public:
 //  from input
-        int K, Neta, Ntrain, Nbasis, Nlbd;
+        int K, Neta, Ntrain, Ntest, Nlbd;
         dv1 eta, lbd_set;
         double Rc;
 
