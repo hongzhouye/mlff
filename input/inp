@@ -13,8 +13,8 @@ lat_ang = 90.0;90.0;90.0
 Rc = 6
 
 # input path and input file range
-inp_path = input/training/random;16;25
-#inp_path = input/training/md;26;75
+#inp_path = input/training/random;16;25
+inp_path = input/training/md;26;75
 #inp_path = input/training/all;1;40
 #inp_path = input/sanity_check;0;0
 
@@ -30,10 +30,10 @@ shuffle = true
 &training
 
 # size of test set
-Ntest = 2000
+Ntest = 500
 
 # size of training set
-Ntrain = 1500
+Ntrain = 2000
 
 # k-fold cross-validation
 k = 5

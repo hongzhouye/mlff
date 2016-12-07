@@ -122,11 +122,12 @@ void _read_inp_ (string& fname, LATTICE& lat, MLFFTRAIN& fft)
                 {
                     if (line.empty () || line[0] == '#')    continue;
                     if (_uppercase_ (line) == "&END")
-                        if (fft.Ntrain + fft.Ntest <= lat.V.size ())    break;
+                        if (fft.Ntrain + fft.Ntest <= lat.F.size ())    break;
                         else
                         {
-                            cout << "[Error] Ntrain + Ntest should be less "
-                                << "the total number of data points!" << endl;
+                            cout << "[Error] Ntrain + Ntest =" << fft.Ntrain +
+                                fft.Ntest << " > Ndata = " <<
+                                lat.F.size () << endl;
                             exit (1);
                         }
 

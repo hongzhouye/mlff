@@ -37,6 +37,7 @@ class KRR
         VectorXd _form_kernel_ (const vMatrixXd& Vt, const MatrixXd& Vtest);
         MatrixXd _form_force_mat_ (const vVectorXd& Ft, const vMatrixXd& At);
         void _solve_ (string);
+        void _cmp_forces_ (const vvVectorXd& V, const vVectorXd& F);
 };
 
 #endif

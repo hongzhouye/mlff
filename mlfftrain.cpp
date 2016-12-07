@@ -61,6 +61,7 @@ void MLFFTRAIN::_train_ (const LATTICE& lat)
         krr.Vtrain = Vtrain_all;    krr.Ftrain = Ftrain_all;
         krr._init_ (lbd, gamma);
         krr._solve_ ("HQ");
+        //krr._cmp_forces_ (Vtest, Ftest);
 
         double test_MAE = krr._MAE_ (Vtest, Ftest);
         printf ("%5.3e\t%9.6f\t%9.6f\t%9.6f\n",

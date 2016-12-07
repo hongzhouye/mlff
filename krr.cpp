@@ -177,3 +177,15 @@ void KRR::_solve_ (string solver)
     //printf ("lbd = %5.3e\ttrain MAE = %9.6f\tvalid MAE = %9.6f\t|alpha| = %9.6f\n",
     //    lambda, _MAE_ (Vtrain, Ftrain), _MAE_ (Vvalid, Fvalid), alpha.norm () / Ntrain);
 }
+
+void KRR::_cmp_forces_ (const vvVectorXd& V, const vVectorXd& F)
+{
+    int N = V.size (), M = F[0].rows ();
+    double MAE = 0.;
+    for (int i = 0; i < N; i++)
+    {
+        VectorXd pred_F = _predict_F_ (V[i]);
+        for (int mu = 0; mu < M; mu++)
+            printf ("%9.6f\t%9.6f\n", F[i](mu), pred_F (mu));
+    }
+}
