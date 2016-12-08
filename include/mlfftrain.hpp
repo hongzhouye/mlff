@@ -36,6 +36,7 @@ class MLFFTRAIN
 //  member function
         void _krr_basis_ (const LATTICE&);
         void _train_ (const LATTICE&);
+        void _app_ (const LATTICE&);
         void _write_VF_ ();
 };
 

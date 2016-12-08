@@ -161,15 +161,24 @@ void LATTICE::_print_ ()
     cout << endl;
 }
 
-void LATTICE::_fingerprint_ ()
+void LATTICE::_fingerprint_ (const vvVectorXd& R, vvVectorXd& V, vVectorXd& F)
 {
     for (int i = 0; i < R.size (); i++)
     {
         vvVectorXd V0 = _R_to_V_ (R[i], Rc, eta);
         V.insert (V.end (), V0.begin (), V0.end ());
     }
-    if (shuf)   _shuffle_fingerprint_ ();
+    if (shuf)   _shuffle_fingerprint_ (V, F);
     if (write)  _write_VF_ ();
+}
+
+void LATTICE::_fingerprint_ (const vvVectorXd& R, vvVectorXd& V)
+{
+    for (int i = 0; i < R.size (); i++)
+    {
+        vvVectorXd V0 = _R_to_V_ (R[i], Rc, eta);
+        V.insert (V.end (), V0.begin (), V0.end ());
+    }
 }
 
 template <typename T>
@@ -186,7 +195,7 @@ void _shuffle_ (const iv1& ind, vector<T>& x)
     x = X;
 }
 
-void LATTICE::_shuffle_fingerprint_ ()
+void LATTICE::_shuffle_fingerprint_ (vvVectorXd& V, vVectorXd& F)
 {
     iv1 indexes (V.size ());
     iota (indexes.begin (), indexes.end (), 0);

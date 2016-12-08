@@ -39,6 +39,7 @@ void MLFFTRAIN::_train_ (const LATTICE& lat)
     Ftest.assign (lat.F.begin () + Ntrain, lat.F.begin () + Ntrain + Ntest);
 
     double Ftest_ave = _mean_ (Ftest);
+    cout << "Ftest_ave = " << Ftest_ave << endl;
 
     printf ("lambda\t\tvalid MAE\ttest MAE\ttest MARE\n");
     for (auto i = lbd_set.begin (); i < lbd_set.end (); i++)
@@ -67,6 +68,44 @@ void MLFFTRAIN::_train_ (const LATTICE& lat)
         printf ("%5.3e\t%9.6f\t%9.6f\t%9.6f\n",
             lbd, valid_MAE / K, test_MAE, test_MAE / Ftest_ave);
     }
+}
+
+void MLFFTRAIN::_app_ (const LATTICE& lat)
+{
+    vVectorXd Fapp = krr._comput_forces_ (lat.Vapp);
+
+    for (int i = 0; i < Fapp.size (); i++)
+        printf ("%9.6f;%9.6f;%9.6f;%9.6f;%9.6f;%9.6f\n",
+            lat.Rapp[0][i](0), lat.Rapp[0][i](1), lat.Rapp[0][i](2),
+            Fapp[i](0), Fapp[i](1), Fapp[i](2));
+
+    string fname (lat.out_path_app + "/data_pred.dat");
+    FILE *pF = fopen (fname.c_str (), "w+");
+
+    for (int i = 0; i < Fapp.size (); i++)
+        fprintf (pF, "%9.6f;%9.6f;%9.6f;%9.6f;%9.6f;%9.6f\n",
+            lat.Rapp[0][i](0), lat.Rapp[0][i](1), lat.Rapp[0][i](2),
+            Fapp[i](0), Fapp[i](1), Fapp[i](2));
+    fclose (pF);
+
+    string fnamex (lat.out_path_app + "/fingerprint_x_pred.dat");
+    string fnamey (lat.out_path_app + "/fingerprint_y_pred.dat");
+    string fnamez (lat.out_path_app + "/fingerprint_z_pred.dat");
+    FILE *pVx = fopen (fnamex.c_str (), "w+");
+    FILE *pVy = fopen (fnamey.c_str (), "w+");
+    FILE *pVz = fopen (fnamez.c_str (), "w+");
+
+    for (int i = 0; i < lat.Vapp.size (); i++)
+    {
+        for (int j = 0; j < lat.Vapp[0][0].rows (); j++)
+        {
+            fprintf (pVx, "%9.6f;", lat.Vapp[i][0](j));
+            fprintf (pVy, "%9.6f;", lat.Vapp[i][1](j));
+            fprintf (pVz, "%9.6f;", lat.Vapp[i][2](j));
+        }
+        fprintf (pVx, "\n");    fprintf (pVy, "\n");    fprintf (pVz, "\n");
+    }
+    fclose (pVx);   fclose (pVy);   fclose (pVz);
 }
 
 void MLFFTRAIN::_write_VF_ ()

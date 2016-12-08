@@ -10,11 +10,11 @@ lat_len = 16.23;16.23;16.23
 lat_ang = 90.0;90.0;90.0
 
 # cutoff radius
-Rc = 5
+Rc = 6.1
 
 # input path and input file range
-#inp_path = input/training/random;16;25
-inp_path = input/training/md;26;75
+inp_path = input/training/random;1;5
+#inp_path = input/training/md;26;75
 #inp_path = input/training/all;1;40
 #inp_path = input/sanity_check;0;0
 
@@ -30,10 +30,10 @@ shuffle = true
 &training
 
 # size of test set
-Ntest = 2000
+Ntest = 80
 
 # size of training set
-Ntrain = 2000
+Ntrain = 1000
 
 # k-fold cross-validation
 k = 5
@@ -42,10 +42,16 @@ k = 5
 gamma = 0.1
 
 # 2-norm regularization parameter grid
-Nlbd = 8
-lbd = 1E-14;1E-7
+#Nlbd = 10
+#lbd = 1E-16;1E-7
+Nlbd = 1
+lbd = 1E-15;1E-15
 
-#Nlbd = 6
-#lbd = 1E-6;1E-1
+&end
+
+&application
+
+pos_file = input/application/POSCAR-001
+out_path = output/pred
 
 &end

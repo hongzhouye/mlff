@@ -23,7 +23,7 @@ class KRR
 //  member function
         void _init_ (double, double);
         void _clear_all_ ();
-        inline VectorXd _predict_F_ (const vVectorXd&);
+        inline VectorXd _predict_F_ (const vVectorXd&, bool flag = false);
         double _loss_ (const vvVectorXd& V, const vVectorXd& F);
         double _MAE_ (const vvVectorXd&, const vVectorXd&);
         double _MARE_ (const vvVectorXd& V, const vVectorXd& F);
@@ -38,6 +38,7 @@ class KRR
         MatrixXd _form_force_mat_ (const vVectorXd& Ft, const vMatrixXd& At);
         void _solve_ (string);
         void _cmp_forces_ (const vvVectorXd& V, const vVectorXd& F);
+        vVectorXd _comput_forces_ (const vvVectorXd& V);
 };
 
 #endif

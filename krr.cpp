@@ -14,7 +14,7 @@ void KRR::_clear_all_ ()
     Vvalid.clear ();    Fvalid.clear ();
 }
 
-inline VectorXd KRR::_predict_F_ (const vVectorXd& Vt)
+inline VectorXd KRR::_predict_F_ (const vVectorXd& Vt, bool flag)
 {
     vvVectorXd Vtwrap;  Vtwrap.push_back (Vt);
     vMatrixXd Vtwrap_new = _fingerprint_xform_ (Vtwrap);
@@ -24,6 +24,17 @@ inline VectorXd KRR::_predict_F_ (const vVectorXd& Vt)
 
     VectorXd F_xformed = alpha.transpose () * _form_kernel_ (Xtrain, Xt);
     VectorXd Ft = At.colPivHouseholderQr ().solve (F_xformed);
+
+    if (flag /*&& Vt[0].norm () + Vt[1].norm () + Vt[2].norm () > 1E-10*/)
+    {
+        cout << "Voriginal:\n" << Vt[0].transpose () << endl <<
+            Vt[1].transpose () << endl << Vt[2].transpose () << endl << endl;
+        cout << "V:\b" << Vtwrap_new[0] << endl << endl;
+        cout << "A:\n" << At << endl << endl;
+        cout << "X:\n" << Xt << endl << endl;
+        cout << "F_xformed:\n" << F_xformed.transpose () << endl << endl;
+        cout << "Ft:\n" << Ft.transpose () << endl << endl;
+    }
 
     return Ft;
 }
@@ -181,11 +192,39 @@ void KRR::_solve_ (string solver)
 void KRR::_cmp_forces_ (const vvVectorXd& V, const vVectorXd& F)
 {
     int N = V.size (), M = F[0].rows ();
-    double MAE = 0.;
+
+    bool flag;
     for (int i = 0; i < N; i++)
     {
         VectorXd pred_F = _predict_F_ (V[i]);
         for (int mu = 0; mu < M; mu++)
             printf ("%9.6f\t%9.6f\n", F[i](mu), pred_F (mu));
+
+        flag = false;
+        for (int mu = 0; mu < M; mu++)
+            if (fabs (pred_F (mu) / F[i](mu)) > 10)
+            {
+                flag = true;    break;
+            }
+        if (flag)   _predict_F_ (V[i], flag);
     }
+}
+
+vVectorXd KRR::_comput_forces_ (const vvVectorXd& V)
+{
+    int N = V.size ();
+
+    vVectorXd Fapp;
+    bool flag;
+    for (int i = 0; i < N; i++)
+    {
+        if (i == 27 || i == 28)  flag = true;
+        else    flag = false;
+        VectorXd pred_F = _predict_F_ (V[i], flag);
+        for (int mu = 0; mu < pred_F.rows (); mu++)
+            if (fabs (pred_F[mu]) > 1E2)    pred_F[mu] = 0.;
+        Fapp.push_back (pred_F);
+    }
+
+    return Fapp;
 }

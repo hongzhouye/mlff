@@ -159,6 +159,26 @@ void _read_inp_ (string& fname, LATTICE& lat, MLFFTRAIN& fft)
                     }
                 }
             }
+            else if (_uppercase_ (line) == "&APPLICATION")
+            {
+                while (getline (input, line))
+                {
+                    if (line.empty () || line[0] == '#')    continue;
+                    if (_uppercase_ (line) == "&END")   break;
+
+                    spline = _split_eq_ (line);
+                    if (_uppercase_ (spline[0]) == "POS_FILE")
+                        _read_R_ (spline[1], lat.Rapp);
+                    else if (_uppercase_ (spline[0]) == "OUT_PATH")
+                        lat.out_path_app = spline[1];
+                    else
+                    {
+                        cout << "[Error] unknown mode: " << line << endl
+                            << "Please check the APPLICATION card." << endl;
+                        exit (1);
+                    }
+                }
+            }
             else
             {
                 cout << "[Error] unknown card name: " << line << endl;
@@ -222,4 +242,41 @@ void _read_data_ (string& path, int start, int end, LATTICE& lat)
             lat.F.insert (lat.F.end (), F.begin (), F.end ());
         }
     }
+}
+
+void _read_R_ (const string& fname, vvVectorXd& R)
+{
+    string line;
+    vs spline;
+
+    R.clear ();
+    vVectorXd R0;
+
+    ifstream input (fname);
+    if (input)
+    {
+        while (getline (input, line))
+        {
+            if (line.empty ())  break;
+
+            spline =  _split_ (line, ';');
+            if (spline.size () != 3)
+            {
+                cout << "[Error] please check data file: " << fname << endl;
+                exit (1);
+            }
+
+            VectorXd r(3);
+            for (int i = 0; i < 3; i++) r(i) = stod (spline[i]);
+            R0.push_back (r);
+        }
+    }
+    else
+    {
+        cout << "[Error] cannot open file: " << fname << endl;
+        exit (1);
+    }
+    input.close ();
+
+    R.push_back (R0);
 }

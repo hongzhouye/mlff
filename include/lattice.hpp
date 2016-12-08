@@ -16,20 +16,21 @@ class LATTICE
         dv1 eta;
         dv1 lat_len, lat_ang;
         double Rc;
-        string out_path;
+        string out_path, out_path_app;
         bool shuf, write;
 
 //  read from data file
-        vvVectorXd R;
+        vvVectorXd R, Rapp;
         vVectorXd F;
 
 //  fingerprint
-        vvVectorXd V;
+        vvVectorXd V, Vapp;
 
 //  member function
         void _print_ ();
-        void _fingerprint_ ();
-        void _shuffle_fingerprint_ ();
+        void _fingerprint_ (const vvVectorXd& R, vvVectorXd& V, vVectorXd& F);
+        void _fingerprint_ (const vvVectorXd& R, vvVectorXd& V);
+        void _shuffle_fingerprint_ (vvVectorXd& V, vVectorXd& F);
         void _write_VF_ ();
 
         dv1 _rdf_per_cell_ (const vVectorXd& R, double Rc, const dv1& bin);

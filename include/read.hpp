@@ -21,6 +21,7 @@
 
 void _read_inp_ (string&, LATTICE&, MLFFTRAIN&);
 void _read_data_ (string&, int, int, LATTICE&);
+void _read_R_ (const string& fname, vvVectorXd& R);
 vvVectorXd _R_to_V_ (const vVectorXd&, double, const dv1&);
 
 #endif
