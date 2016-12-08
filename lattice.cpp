@@ -262,6 +262,24 @@ void LATTICE::_gen_rdf_ (int nbin)
     }
 }
 
+void LATTICE::_count_zero_ (const vvVectorXd& V)
+{
+    int N = V.size (), M = V[0].size ();
+
+    iv1 num_zeros;  num_zeros.assign (M + 1, 0);
+    int count_zero;
+    for (int i = 0; i < N; i++)
+    {
+        count_zero = 0;
+        for (int mu = 0; mu < M; mu++)
+            if (V[i][mu].norm () < 1.E-5)   count_zero++;
+        num_zeros[count_zero] ++;
+    }
+    for (int mu = 0; mu <= M; mu++)
+        cout << "# of having " << mu << " zeros: " << num_zeros[mu] << endl;
+    cout << endl;
+}
+
 void LATTICE::_write_VF_ ()
 {
     if (V.size () != F.size ())

@@ -16,24 +16,33 @@ void KRR::_clear_all_ ()
 
 inline VectorXd KRR::_predict_F_ (const vVectorXd& Vt, bool flag)
 {
-    vvVectorXd Vtwrap;  Vtwrap.push_back (Vt);
-    vMatrixXd Vtwrap_new = _fingerprint_xform_ (Vtwrap);
-    vMatrixXd Atwrap = _V_to_A_ (Vtwrap_new);
-    vMatrixXd Xtwrap = _form_X_ (Vtwrap_new, Atwrap);
-    MatrixXd At = Atwrap[0], Xt = Xtwrap[0];
+    VectorXd Ft (Xtrain[0].rows ());
 
-    VectorXd F_xformed = alpha.transpose () * _form_kernel_ (Xtrain, Xt);
-    VectorXd Ft = At.colPivHouseholderQr ().solve (F_xformed);
-
-    if (flag /*&& Vt[0].norm () + Vt[1].norm () + Vt[2].norm () > 1E-10*/)
+    double normVt = 0.;
+    for (int mu = 0; mu < Vt.size (); mu++) normVt += Vt[mu].norm ();
+    if (normVt < 1E-6)
+        Ft.setZero ();
+    else
     {
-        cout << "Voriginal:\n" << Vt[0].transpose () << endl <<
-            Vt[1].transpose () << endl << Vt[2].transpose () << endl << endl;
-        cout << "V:\b" << Vtwrap_new[0] << endl << endl;
-        cout << "A:\n" << At << endl << endl;
-        cout << "X:\n" << Xt << endl << endl;
-        cout << "F_xformed:\n" << F_xformed.transpose () << endl << endl;
-        cout << "Ft:\n" << Ft.transpose () << endl << endl;
+        vvVectorXd Vtwrap;  Vtwrap.push_back (Vt);
+        vMatrixXd Vtwrap_new = _fingerprint_xform_ (Vtwrap);
+        vMatrixXd Atwrap = _V_to_A_ (Vtwrap_new);
+        vMatrixXd Xtwrap = _form_X_ (Vtwrap_new, Atwrap);
+        MatrixXd At = Atwrap[0], Xt = Xtwrap[0];
+
+        VectorXd F_xformed = alpha.transpose () * _form_kernel_ (Xtrain, Xt);
+        Ft = At.colPivHouseholderQr ().solve (F_xformed);
+
+        if (flag /*&& Vt[0].norm () + Vt[1].norm () + Vt[2].norm () > 1E-10*/)
+        {
+            cout << "Voriginal:\n" << Vt[0].transpose () << endl <<
+                Vt[1].transpose () << endl << Vt[2].transpose () << endl << endl;
+            cout << "V:\b" << Vtwrap_new[0] << endl << endl;
+            cout << "A:\n" << At << endl << endl;
+            cout << "X:\n" << Xt << endl << endl;
+            cout << "F_xformed:\n" << F_xformed.transpose () << endl << endl;
+            cout << "Ft:\n" << Ft.transpose () << endl << endl;
+        }
     }
 
     return Ft;
@@ -218,7 +227,7 @@ vVectorXd KRR::_comput_forces_ (const vvVectorXd& V)
     bool flag;
     for (int i = 0; i < N; i++)
     {
-        if (i == 27 || i == 28)  flag = true;
+        if (i == 132 /*|| i == 28*/)  flag = true;
         else    flag = false;
         VectorXd pred_F = _predict_F_ (V[i], flag);
         for (int mu = 0; mu < pred_F.rows (); mu++)

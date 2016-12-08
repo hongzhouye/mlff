@@ -42,16 +42,22 @@ k = 5
 gamma = 0.1
 
 # 2-norm regularization parameter grid
-#Nlbd = 10
-#lbd = 1E-16;1E-7
-Nlbd = 1
-lbd = 1E-15;1E-15
+Nlbd = 10
+lbd = 1E-16;1E-7
+#Nlbd = 1
+#lbd = 1E-13;1E-13
+
+&end
+
+&sainity
+
+inp_path = input/sanity_check;0;3
 
 &end
 
 &application
 
-pos_file = input/application/POSCAR-001
+pos_file = input/application/POSCAR_5
 out_path = output/pred
 
 &end

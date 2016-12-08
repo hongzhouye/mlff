@@ -20,11 +20,11 @@ class LATTICE
         bool shuf, write;
 
 //  read from data file
-        vvVectorXd R, Rapp;
-        vVectorXd F;
+        vvVectorXd R, Rapp, Rsanity;
+        vVectorXd F, Fsanity;
 
 //  fingerprint
-        vvVectorXd V, Vapp;
+        vvVectorXd V, Vapp, Vsanity;
 
 //  member function
         void _print_ ();
@@ -35,6 +35,8 @@ class LATTICE
 
         dv1 _rdf_per_cell_ (const vVectorXd& R, double Rc, const dv1& bin);
         void _gen_rdf_ (int nbin);
+
+        void _count_zero_ (const vvVectorXd& V);
 };
 
 #endif

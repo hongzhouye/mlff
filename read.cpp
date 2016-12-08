@@ -97,8 +97,8 @@ void _read_inp_ (string& fname, LATTICE& lat, MLFFTRAIN& fft)
                     else if (_uppercase_ (spline[0]) == "INP_PATH")
                     {
                         vs temp = _split_ (spline[1], ';');
-                        _read_data_ (
-                            temp[0], stoi (temp[1]), stoi (temp[2]), lat);
+                        _read_data_ (temp[0], stoi (temp[1]),
+                            stoi (temp[2]), lat.R, lat.F);
                     }
                     else if (_uppercase_ (spline[0]) == "WRITE")
                         lat.write = (_uppercase_ (spline[1]) == "TRUE") ?
@@ -159,6 +159,28 @@ void _read_inp_ (string& fname, LATTICE& lat, MLFFTRAIN& fft)
                     }
                 }
             }
+            else if (_uppercase_ (line) == "&SANITY")
+            {
+                while (getline (input, line))
+                {
+                    if (line.empty () || line[0] == '#')    continue;
+                    if (_uppercase_ (line) == "&END")   break;
+
+                    spline = _split_eq_ (line);
+                    if (_uppercase_ (spline[0]) == "INP_PATH")
+                    {
+                        vs temp = _split_ (spline[1], ';');
+                        _read_data_ (temp[0], stoi (temp[1]),
+                            stoi (temp[2]), lat.Rsanity, lat.Fsanity);
+                    }
+                    else
+                    {
+                        cout << "[Error] unknown mode: " << line << endl
+                            << "Please check the SANITY card." << endl;
+                        exit (1);
+                    }
+                }
+            }
             else if (_uppercase_ (line) == "&APPLICATION")
             {
                 while (getline (input, line))
@@ -194,7 +216,8 @@ void _read_inp_ (string& fname, LATTICE& lat, MLFFTRAIN& fft)
     input.close ();
 }
 
-void _read_data_ (string& path, int start, int end, LATTICE& lat)
+void _read_data_ (string& path, int start, int end,
+    vvVectorXd& latR, vVectorXd& latF)
 {
     string line;
     vs fname_set, spline;
@@ -238,8 +261,8 @@ void _read_data_ (string& path, int start, int end, LATTICE& lat)
 
         if (R.size () > 0)
         {
-            lat.R.push_back (R);    // to be convert to fignerprint
-            lat.F.insert (lat.F.end (), F.begin (), F.end ());
+            latR.push_back (R);    // to be convert to fignerprint
+            latF.insert (latF.end (), F.begin (), F.end ());
         }
     }
 }

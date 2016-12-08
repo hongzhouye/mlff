@@ -20,7 +20,8 @@
 #include "mlfftrain.hpp"
 
 void _read_inp_ (string&, LATTICE&, MLFFTRAIN&);
-void _read_data_ (string&, int, int, LATTICE&);
+void _read_data_ (string& path, int start, int end,
+    vvVectorXd& latR, vVectorXd& latF);
 void _read_R_ (const string& fname, vvVectorXd& R);
 vvVectorXd _R_to_V_ (const vVectorXd&, double, const dv1&);
 
