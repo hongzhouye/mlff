@@ -16,7 +16,7 @@ void KRR::_clear_all_ ()
 
 inline VectorXd KRR::_predict_F_ (const vVectorXd& Vt, bool flag)
 {
-    VectorXd Ft (Xtrain[0].rows ());
+    VectorXd Ft (M);
 
     double normVt = 0.;
     for (int mu = 0; mu < Vt.size (); mu++) normVt += Vt[mu].norm ();
@@ -32,6 +32,9 @@ inline VectorXd KRR::_predict_F_ (const vVectorXd& Vt, bool flag)
 
         VectorXd F_xformed = alpha.transpose () * _form_kernel_ (Xtrain, Xt);
         Ft = At.colPivHouseholderQr ().solve (F_xformed);
+
+        for (int mu = 0; mu < M; mu++)
+            if (fabs (Ft[mu]) > force_limit) Ft[mu] = 0.;
 
         if (flag /*&& Vt[0].norm () + Vt[1].norm () + Vt[2].norm () > 1E-10*/)
         {
@@ -195,7 +198,8 @@ void KRR::_solve_ (string solver)
             householderQr ().solve (Ft);
 
     //printf ("lbd = %5.3e\ttrain MAE = %9.6f\tvalid MAE = %9.6f\t|alpha| = %9.6f\n",
-    //    lambda, _MAE_ (Vtrain, Ftrain), _MAE_ (Vvalid, Fvalid), alpha.norm () / Ntrain);
+    //    lambda, _MAE_ (Vtrain, Ftrain), _MAE_ (Vvalid, Fvalid),
+    //    alpha.norm () / Ntrain);
 }
 
 void KRR::_cmp_forces_ (const vvVectorXd& V, const vVectorXd& F)
@@ -209,13 +213,13 @@ void KRR::_cmp_forces_ (const vvVectorXd& V, const vVectorXd& F)
         for (int mu = 0; mu < M; mu++)
             printf ("%9.6f\t%9.6f\n", F[i](mu), pred_F (mu));
 
-        flag = false;
+        /*flag = false;
         for (int mu = 0; mu < M; mu++)
             if (fabs (pred_F (mu) / F[i](mu)) > 10)
             {
                 flag = true;    break;
             }
-        if (flag)   _predict_F_ (V[i], flag);
+        if (flag)   _predict_F_ (V[i], flag);*/
     }
 }
 
@@ -227,8 +231,9 @@ vVectorXd KRR::_comput_forces_ (const vvVectorXd& V)
     bool flag;
     for (int i = 0; i < N; i++)
     {
-        if (i == 132 /*|| i == 28*/)  flag = true;
+        if (i == 27 /*|| i == 28*/)  flag = true;
         else    flag = false;
+        cout << "flag = " << flag << endl;
         VectorXd pred_F = _predict_F_ (V[i], flag);
         for (int mu = 0; mu < pred_F.rows (); mu++)
             if (fabs (pred_F[mu]) > 1E2)    pred_F[mu] = 0.;

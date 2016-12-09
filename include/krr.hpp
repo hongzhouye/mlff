@@ -19,6 +19,7 @@ class KRR
         vvVectorXd Vbasis, Vtrain, Vvalid;
         int Nbasis, Ntrain, Nvalid, M;
         vMatrixXd Atrain, Xtrain;
+        double force_limit;
 
 //  member function
         void _init_ (double, double);

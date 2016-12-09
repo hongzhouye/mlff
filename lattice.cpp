@@ -196,7 +196,7 @@ void _shuffle_ (const iv1& ind, vector<T>& x)
 }
 
 void LATTICE::_shuffle_fingerprint_ (vvVectorXd& V, vVectorXd& F)
-{
+{    
     iv1 indexes (V.size ());
     iota (indexes.begin (), indexes.end (), 0);
     srand(time(0));
@@ -262,10 +262,12 @@ void LATTICE::_gen_rdf_ (int nbin)
     }
 }
 
-void LATTICE::_count_zero_ (const vvVectorXd& V)
+iv2 LATTICE::_form_index_ (const vvVectorXd& V)
 {
     int N = V.size (), M = V[0].size ();
 
+    iv2 ind_set;
+    for (int mu = 0; mu <= M; mu++) {iv1 a; ind_set.push_back (a);}
     iv1 num_zeros;  num_zeros.assign (M + 1, 0);
     int count_zero;
     for (int i = 0; i < N; i++)
@@ -273,11 +275,45 @@ void LATTICE::_count_zero_ (const vvVectorXd& V)
         count_zero = 0;
         for (int mu = 0; mu < M; mu++)
             if (V[i][mu].norm () < 1.E-5)   count_zero++;
+        ind_set[count_zero].push_back (i);
         num_zeros[count_zero] ++;
     }
     for (int mu = 0; mu <= M; mu++)
         cout << "# of having " << mu << " zeros: " << num_zeros[mu] << endl;
     cout << endl;
+
+    return ind_set;
+}
+
+void LATTICE::_form_sanity_set_ (
+    vvVectorXd& Vtrain, vVectorXd& Ftrain,
+    vvVectorXd& Vtest, vVectorXd& Ftest, int Nsanity)
+{
+    int N = V.size (), M = V[0].size ();
+
+    iv2 index_set = _form_index_ (Vsanity);
+    for (int mu = 0; mu < M; mu++)
+        if (2 * Nsanity >= index_set[mu].size ())
+            Nsanity = (int) index_set[mu].size () / 2;
+    cout << "Nsanity = " << Nsanity << endl;
+
+    for (int mu = 0; mu < M; mu++)
+    {
+        for (int i = 0; i < Nsanity; i++)
+        {
+            int ind = index_set[mu][i];
+            Vtrain.push_back (Vsanity[ind]);
+            Ftrain.push_back (Fsanity[ind]);
+            ind = index_set[mu][i + Nsanity];
+            Vtest.push_back (Vsanity[ind]);
+            Ftest.push_back (Fsanity[ind]);
+        }
+    }
+
+    int ind = index_set[M][0];
+    Vtrain.push_back (Vsanity[ind]);    Ftrain.push_back (Fsanity[ind]);
+    ind = index_set[M][1];
+    Vtest.push_back (Vsanity[ind]);    Ftest.push_back (Fsanity[ind]);
 }
 
 void LATTICE::_write_VF_ ()

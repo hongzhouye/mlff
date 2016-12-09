@@ -18,6 +18,11 @@
 
 class MLFFTRAIN
 {
+    private:
+        void _form_training_test_set_ (
+            vvVectorXd& Vtrain, vVectorXd& Ftrain,
+            vvVectorXd& Vtest, vVectorXd& Ftest,
+            LATTICE& lat);
     public:
 //  from input
         int K, Neta, Ntrain, Ntest, Nlbd;
@@ -35,7 +40,7 @@ class MLFFTRAIN
 
 //  member function
         void _krr_basis_ (const LATTICE&);
-        void _train_ (const LATTICE&);
+        void _train_ (LATTICE&);
         void _app_ (const LATTICE&);
         void _write_VF_ ();
 };

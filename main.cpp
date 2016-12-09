@@ -17,10 +17,11 @@ int main (int argc, char *argv[])
     MLFFTRAIN fft;
     _read_inp_ (fname_inp, lat, fft);
     lat._fingerprint_ (lat.R, lat.V, lat.F);
-    lat._count_zero_ (lat.V);
+    //lat._fingerprint_ (lat.Rsanity, lat.Vsanity, lat.Fsanity);
+    //lat._count_zero_ (lat.Vsanity);
     //lat._fingerprint_ (lat.Rapp, lat.Vapp);
     //lat._gen_rdf_ (200);
-    fft._train_ (lat);
+    //fft._train_ (lat);
     //fft._app_ (lat);
 
     return 0;

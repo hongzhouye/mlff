@@ -10,6 +10,8 @@ class LATTICE
         void _gen_neighbor_list_ (dv3&, dv2&,
             const vMatrixXd&, const MatrixXd&, double);
         vvVectorXd _R_to_V_ (const vVectorXd&, double, const dv1&);
+
+        iv2 _form_index_ (const vvVectorXd& V);
     public:
 //  read from input file
         int Neta;
@@ -36,7 +38,9 @@ class LATTICE
         dv1 _rdf_per_cell_ (const vVectorXd& R, double Rc, const dv1& bin);
         void _gen_rdf_ (int nbin);
 
-        void _count_zero_ (const vvVectorXd& V);
+        void _form_sanity_set_ (
+            vvVectorXd& Vtrain, vVectorXd& Ftrain,
+            vvVectorXd& Vtest, vVectorXd& Ftest, int Nsanity = 10);
 };
 
 #endif

@@ -79,6 +79,10 @@ void _read_inp_ (string& fname, LATTICE& lat, MLFFTRAIN& fft)
                         vs temp = _split_ (spline[1], ';');
                         _log_space_ (lat.eta, lat.Neta,
                             stod (temp[0]), stod (temp[1]));
+                        _fancy_print_ ("eta grid");
+                        for (int i = 0; i < lat.eta.size (); i++)
+                            printf ("%4.1e ", lat.eta[i]);
+                        cout << endl << endl;
                     }
                     else if (_uppercase_ (spline[0]) == "LAT_LEN")
                     {

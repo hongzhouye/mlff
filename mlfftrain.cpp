@@ -29,17 +29,36 @@ double _mean_ (const vVectorXd& Ft)
     return mean / (double) N;
 }
 
-void MLFFTRAIN::_train_ (const LATTICE& lat)
+template <typename T>
+void _insert_ (vector<T>& v1, const vector<T>& v2, const int Ns, const int Nt)
+{
+    int N1 = v1.size ();
+
+    v1.insert (v1.end (), v2.begin () + Ns, v2.begin () + Ns + Nt - N1);
+}
+
+void MLFFTRAIN::_form_training_test_set_ (
+    vvVectorXd& Vtrain, vVectorXd& Ftrain,
+    vvVectorXd& Vtest, vVectorXd& Ftest,
+    LATTICE& lat)
+{
+    lat._form_sanity_set_ (Vtrain, Ftrain, Vtest, Ftest);
+    _insert_ (Vtrain, lat.V, 0, Ntrain);
+    _insert_ (Ftrain, lat.F, 0, Ntrain);
+    lat._shuffle_fingerprint_ (Vtrain, Ftrain);
+    _insert_ (Vtest, lat.V, Ntrain, Ntest);
+    _insert_ (Ftest, lat.F, Ntrain, Ntest);
+}
+
+void MLFFTRAIN::_train_ (LATTICE& lat)
 {
     vvVectorXd Vtrain_all, Vtest;
-    Vtrain_all.assign (lat.V.begin (), lat.V.begin () + Ntrain);
-    Vtest.assign (lat.V.begin () + Ntrain, lat.V.begin () + Ntrain + Ntest);
     vVectorXd Ftrain_all, Ftest;
-    Ftrain_all.assign (lat.F.begin (), lat.F.begin () + Ntrain);
-    Ftest.assign (lat.F.begin () + Ntrain, lat.F.begin () + Ntrain + Ntest);
+    _form_training_test_set_ (Vtrain_all, Ftrain_all, Vtest, Ftest, lat);
 
     double Ftest_ave = _mean_ (Ftest);
     cout << "Ftest_ave = " << Ftest_ave << endl;
+    krr.force_limit = Ftest_ave * 10;
 
     printf ("lambda\t\tvalid MAE\ttest MAE\ttest MARE\n");
     for (auto i = lbd_set.begin (); i < lbd_set.end (); i++)
