@@ -42,7 +42,7 @@ void MLFFTRAIN::_form_training_test_set_ (
     vvVectorXd& Vtest, vVectorXd& Ftest,
     LATTICE& lat)
 {
-    lat._form_sanity_set_ (Vtrain, Ftrain, Vtest, Ftest);
+    //lat._form_sanity_set_ (Vtrain, Ftrain, Vtest, Ftest);
     _insert_ (Vtrain, lat.V, 0, Ntrain);
     _insert_ (Ftrain, lat.F, 0, Ntrain);
     lat._shuffle_fingerprint_ (Vtrain, Ftrain);
@@ -81,7 +81,7 @@ void MLFFTRAIN::_train_ (LATTICE& lat)
         krr.Vtrain = Vtrain_all;    krr.Ftrain = Ftrain_all;
         krr._init_ (lbd, gamma);
         krr._solve_ ("HQ");
-        //krr._cmp_forces_ (Vtest, Ftest);
+        krr._cmp_forces_ (Vtest, Ftest);
 
         double test_MAE = krr._MAE_ (Vtest, Ftest);
         printf ("%5.3e\t%9.6f\t%9.6f\t%9.6f\n",

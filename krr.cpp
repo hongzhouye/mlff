@@ -58,8 +58,7 @@ double KRR::_MAE_ (const vvVectorXd& V, const vVectorXd& F)
     for (int i = 0; i < N; i++)
     {
         VectorXd pred_F = _predict_F_ (V[i]);
-        MAE += (pred_F - F[i]).array ().abs ().sum ()
-            / (double) M;
+        MAE += (pred_F - F[i]).norm ();
     }
     return MAE / (double) N;
 }
