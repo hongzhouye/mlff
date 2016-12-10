@@ -89,6 +89,120 @@ void MLFFTRAIN::_train_ (LATTICE& lat)
     }
 }
 
+void _form_testset_ (vvVectorXd& Vtest, vVectorXd& Ftest,
+    LATTICE& lat, int Ntest, const vector<bool>& online)
+{
+    Vtest.clear (); Ftest.clear ();
+
+    vvVectorXd Vpool;   vVectorXd Fpool;
+    for (int i = 0; i < lat.V.size (); i++)
+        if (online[i])
+        {
+            Vpool.push_back (lat.V[i]); Fpool.push_back (lat.F[i]);
+        }
+    lat._shuffle_fingerprint_ (Vpool, Fpool);
+    if (Ntest > Vpool.size ())  Ntest = Vpool.size ();
+    Vtest.assign (Vpool.begin (), Vpool.begin () + Ntest);
+    Ftest.assign (Fpool.begin (), Fpool.begin () + Ntest);
+}
+
+void MLFFTRAIN::_1by1_train_ (LATTICE& lat)
+{
+    vvVectorXd Vtrain_all, Vtest;
+    vVectorXd Ftrain_all, Ftest;
+    //_form_training_test_set_ (Vtrain_all, Ftrain_all, Vtest, Ftest, lat);
+
+    //printf ("lambda\t\tvalid MAE\ttest MAE\ttest MARE\n");
+    _fancy_print_ ("generating basis", 3);
+    for (auto i = lbd_set.begin (); i < lbd_set.end (); i++)
+    {
+        double lbd = *i;
+        double valid_MAE = 0.;
+
+        Vtrain_all.clear ();    Vtest.clear ();
+        Ftrain_all.clear ();    Ftest.clear ();
+
+        int Ninit = 100;
+        vector<bool> online;    online.assign (lat.V.size (), true);
+        Vtrain_all.assign (lat.V.begin (), lat.V.begin () + Ninit);
+        Ftrain_all.assign (lat.F.begin (), lat.F.begin () + Ninit);
+        for_each (online.begin (), online.begin () + Ninit,
+                 [](bool d) {d = false;});
+
+        int pos = Ninit;
+        bool drain = false;
+        while (Vtrain_all.size () < Ntrain)
+        {
+            if (online[pos - 1])
+            {
+                krr._clear_all_ ();
+                krr.Vtrain = Vtrain_all;    krr.Ftrain = Ftrain_all;
+                krr._init_ (lbd, gamma);
+
+                krr._solve_ ("HQ");
+            }
+
+            double MAE_pos = krr._MAE_ (lat.V[pos], lat.F[pos]);
+            if (MAE_pos > Fc)
+            {
+                Vtrain_all.push_back (lat.V[pos]);
+                Ftrain_all.push_back (lat.F[pos]);
+                online[pos] = false;
+            }
+            printf ("Error = %9.6f\tprocess: %4d/%4d\n",
+                MAE_pos, Vtrain_all.size (), pos);
+
+            // process bar
+            double proc1 = (double) pos / lat.V.size ();
+            double proc2 = (double) Vtrain_all.size () / Ntrain;
+            double proc = (proc1 > proc2) ? (proc1) : (proc2);
+
+            _progress_bar_ (proc);
+
+            pos ++;
+            if (pos == lat.V.size ())
+            {
+                drain = true;
+                break;
+            }
+        }
+        if (drain)  Ntrain = Vtrain_all.size ();
+
+        cout << endl << endl;
+        _fancy_print_ ("basis set finished", 3);
+        printf ("%d configs are selected from %d (%5.2f%%)\n", Ntrain,
+            (drain) ? (pos-1) : (pos), (double) Ntrain / lat.V.size () * 100);
+
+        _form_testset_ (Vtest, Ftest, lat, Ntest, online);
+        cout << "test set size: " << Vtest.size () << endl;
+
+        double Ftest_ave = _mean_ (Ftest);
+        cout << "Ftest_ave = " << Ftest_ave << endl;
+
+//  k-fold cross-validation
+        for (int k = 0; k < K; k++)
+        {
+            krr._clear_all_ ();
+            _k_fold_partition_ (Vtrain_all, krr.Vtrain, krr.Vvalid, k, K);
+            _k_fold_partition_ (Ftrain_all, krr.Ftrain, krr.Fvalid, k, K);
+
+            krr._init_ (lbd, gamma);
+            krr._solve_ ("HQ");
+            valid_MAE += krr._MAE_ (krr.Vvalid, krr.Fvalid);
+        }
+//  overall train
+        krr._clear_all_ ();
+        krr.Vtrain = Vtrain_all;    krr.Ftrain = Ftrain_all;
+        krr._init_ (lbd, gamma);
+        krr._solve_ ("HQ");
+        krr._cmp_forces_ (Vtest, Ftest);
+
+        double test_MAE = krr._MAE_ (Vtest, Ftest);
+        printf ("%5.3e\t%9.6f\t%9.6f\t%9.6f\n",
+            lbd, valid_MAE / K, test_MAE, test_MAE / Ftest_ave);
+    }
+}
+
 void MLFFTRAIN::_app_ (const LATTICE& lat)
 {
     vVectorXd Fapp = krr._comput_forces_ (lat.Vapp);

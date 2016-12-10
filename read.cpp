@@ -140,6 +140,8 @@ void _read_inp_ (string& fname, LATTICE& lat, MLFFTRAIN& fft)
                         fft.Ntest = (int) stod (spline[1]);
                     else if (_uppercase_ (spline[0]) == "NTRAIN")
                         fft.Ntrain = (int) stod (spline[1]);
+                    else if (_uppercase_ (spline[0]) == "FC")
+                        fft.Fc = stod (spline[1]);
                     else if (_uppercase_ (spline[0]) == "K")
                         fft.K = (int) stod (spline[1]);
                     else if (_uppercase_ (spline[0]) == "GAMMA")
@@ -193,7 +195,9 @@ void _read_inp_ (string& fname, LATTICE& lat, MLFFTRAIN& fft)
                     if (_uppercase_ (line) == "&END")   break;
 
                     spline = _split_eq_ (line);
-                    if (_uppercase_ (spline[0]) == "POS_FILE")
+                    if (_uppercase_ (spline[0]) == "CMP_FORCE")
+                        fft.cmp_force = spline[1];
+                    else if (_uppercase_ (spline[0]) == "POS_FILE")
                         _read_R_ (spline[1], lat.Rapp);
                     else if (_uppercase_ (spline[0]) == "OUT_PATH")
                         lat.out_path_app = spline[1];

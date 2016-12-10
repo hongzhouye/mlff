@@ -6,6 +6,7 @@ void KRR::_init_ (double lbd, double gm)
     Ntrain = Vtrain.size ();
     Nvalid = Vvalid.size ();
     M = Ftrain[0].rows ();
+    force_limit = 1E3;
 }
 
 void KRR::_clear_all_ ()
@@ -61,6 +62,13 @@ double KRR::_MAE_ (const vvVectorXd& V, const vVectorXd& F)
         MAE += (pred_F - F[i]).norm ();
     }
     return MAE / (double) N;
+}
+
+double KRR::_MAE_ (const vVectorXd& V, const VectorXd& F)
+{
+    vvVectorXd Vwrap;   Vwrap.push_back (V);
+    vVectorXd Fwrap;    Fwrap.push_back (F);
+    return _MAE_ (Vwrap, Fwrap);
 }
 
 double KRR::_MARE_ (const vvVectorXd& V, const vVectorXd& F)
@@ -206,20 +214,14 @@ void KRR::_cmp_forces_ (const vvVectorXd& V, const vVectorXd& F)
     int N = V.size (), M = F[0].rows ();
 
     bool flag;
+    FILE *p = fopen ("1.dat", "w+");
     for (int i = 0; i < N; i++)
     {
         VectorXd pred_F = _predict_F_ (V[i]);
         for (int mu = 0; mu < M; mu++)
-            printf ("%9.6f\t%9.6f\n", F[i](mu), pred_F (mu));
-
-        /*flag = false;
-        for (int mu = 0; mu < M; mu++)
-            if (fabs (pred_F (mu) / F[i](mu)) > 10)
-            {
-                flag = true;    break;
-            }
-        if (flag)   _predict_F_ (V[i], flag);*/
+            fprintf (p, "%9.6f\t%9.6f\n", F[i](mu), pred_F (mu));
     }
+    fclose (p);
 }
 
 vVectorXd KRR::_comput_forces_ (const vvVectorXd& V)

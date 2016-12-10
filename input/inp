@@ -10,17 +10,17 @@ lat_len = 16.23;16.23;16.23
 lat_ang = 90.0;90.0;90.0
 
 # cutoff radius
-Rc = 5.1
+Rc = 4.12
 
 # input path and input file range
-#inp_path = input/training/ding;76;90
-#inp_path = input/training/random;16;25
-inp_path = input/training/md;26;75
+#inp_path = input/training/random;1;15
+inp_path = input/training/ding;16;115
+#inp_path = input/training/md;26;75
 #inp_path = input/training/all;1;40
 #inp_path = input/sanity_check;0;0
 
 # if true, write fingerprints to out_path
-write = false 
+write = true 
 out_path = output
 
 # if true, shuffle the input data [RECOMMENDED]
@@ -36,17 +36,20 @@ Ntest = 1000
 # size of training set
 Ntrain = 2000
 
+# force cut off
+Fc = 0.3
+
 # k-fold cross-validation
 k = 5
 
 # parameter for RBF kernel
-gamma = 0.1
+gamma = 10
 
 # 2-norm regularization parameter grid
-#Nlbd = 10
-#lbd = 1E-14;1E-5
-Nlbd = 1
-lbd = 1E-12;1E-12
+Nlbd = 10
+lbd = 1E-10;1E-1
+#Nlbd = 1
+#lbd = 1E-11;1E-11
 
 &end
 
@@ -57,6 +60,8 @@ inp_path = input/sanity_check;0;3
 &end
 
 &application
+
+cmp_force = output/cmp_force/cmp_force.dat
 
 pos_file = input/application/POSCAR5
 out_path = output/pred

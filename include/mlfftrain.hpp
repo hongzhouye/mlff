@@ -29,6 +29,9 @@ class MLFFTRAIN
         dv1 eta, lbd_set;
         double Rc;
 
+        double Fc;  // for filter train
+        string cmp_force;
+
 //  param's
         double gamma;
         VectorXd alpha;
@@ -41,6 +44,7 @@ class MLFFTRAIN
 //  member function
         void _krr_basis_ (const LATTICE&);
         void _train_ (LATTICE&);
+        void _1by1_train_ (LATTICE&);
         void _app_ (const LATTICE&);
         void _write_VF_ ();
 };

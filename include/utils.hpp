@@ -28,5 +28,6 @@ typedef vector<vVectorXd> vvVectorXd;
 
 void _log_space_ (dv1&, int, double, double);
 void _fancy_print_ (string, int space = 6);
+void _progress_bar_ (double progress);
 
 #endif

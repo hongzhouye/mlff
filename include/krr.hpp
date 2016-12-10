@@ -27,6 +27,7 @@ class KRR
         inline VectorXd _predict_F_ (const vVectorXd&, bool flag = false);
         double _loss_ (const vvVectorXd& V, const vVectorXd& F);
         double _MAE_ (const vvVectorXd&, const vVectorXd&);
+        double _MAE_ (const vVectorXd& V, const VectorXd& F);
         double _MARE_ (const vvVectorXd& V, const vVectorXd& F);
         inline double _penalized_loss_ (const vvVectorXd& V, const vVectorXd& F);
 

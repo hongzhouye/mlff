@@ -23,3 +23,23 @@ void _fancy_print_ (string fancy, int space)
 	for (i = 0; i < len; i++)	cout << "=";
 	cout << endl;
 }
+
+void _progress_bar_ (double progress)
+{
+    int barWidth = 70;
+
+    if (progress <= 1.)
+    {
+        cout << "[";
+        int pos = barWidth * progress;
+        for (int i = 0; i < barWidth; ++i) {
+            if (i < pos) cout << "=";
+            else if (i == pos) cout << ">";
+            else cout << " ";
+        }
+        cout << "] " << int(progress * 100.0) << " %\r";
+        cout.flush();
+    }
+    else
+        cout << endl;
+}
