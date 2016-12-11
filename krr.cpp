@@ -21,24 +21,21 @@ inline VectorXd KRR::_predict_F_ (const vVectorXd& Vt, bool flag)
 
     double normVt = 0.;
     for (int mu = 0; mu < Vt.size (); mu++) normVt += Vt[mu].norm ();
-    if (normVt < 1E-6)
+    if (normVt < 1E-16)
         Ft.setZero ();
     else
     {
-        vvVectorXd Vtwrap;  Vtwrap.push_back (Vt);
-        vMatrixXd Vtwrap_new = _fingerprint_xform_ (Vtwrap);
-        vMatrixXd Atwrap = _V_to_A_ (Vtwrap_new);
-        vMatrixXd Xtwrap = _form_X_ (Vtwrap_new, Atwrap);
-        MatrixXd At = Atwrap[0], Xt = Xtwrap[0];
-
-        VectorXd F_xformed = alpha.transpose () * _form_kernel_ (Xtrain, Xt);
-        Ft = At.colPivHouseholderQr ().solve (F_xformed);
+        for (int mu = 0; mu < M; mu++)
+        {
+            vVectorXd kt = _form_kernel_ (Vtrain, Vt);
+            Ft(mu) = alpha[mu].dot (kt[mu]);
+        }
 
         for (int mu = 0; mu < M; mu++)
             if (fabs (Ft[mu]) > force_limit) Ft[mu] = 0.;
 
-        if (flag /*&& Vt[0].norm () + Vt[1].norm () + Vt[2].norm () > 1E-10*/)
-        {
+//        if (flag /*&& Vt[0].norm () + Vt[1].norm () + Vt[2].norm () > 1E-10*/)
+/*        {
             cout << "Voriginal:\n" << Vt[0].transpose () << endl <<
                 Vt[1].transpose () << endl << Vt[2].transpose () << endl << endl;
             cout << "V:\b" << Vtwrap_new[0] << endl << endl;
@@ -46,7 +43,7 @@ inline VectorXd KRR::_predict_F_ (const vVectorXd& Vt, bool flag)
             cout << "X:\n" << Xt << endl << endl;
             cout << "F_xformed:\n" << F_xformed.transpose () << endl << endl;
             cout << "Ft:\n" << Ft.transpose () << endl << endl;
-        }
+        }*/
     }
 
     return Ft;
@@ -59,7 +56,17 @@ double KRR::_MAE_ (const vvVectorXd& V, const vVectorXd& F)
     for (int i = 0; i < N; i++)
     {
         VectorXd pred_F = _predict_F_ (V[i]);
-        MAE += (pred_F - F[i]).norm ();
+        double error = (pred_F - F[i]).norm ();
+        MAE += error;
+        /*cout << "error: " << error << endl;
+        if (error > 1E4)
+        {
+            cout << "pred_F = " << pred_F.transpose () << endl;
+            cout << "F      = " << F[i].transpose () << endl;
+            cout << "V[i][x]= " << V[i][0].transpose () << endl;
+            cout << "V[i][y]= " << V[i][1].transpose () << endl;
+            cout << "V[i][z]= " << V[i][2].transpose () << endl << endl;
+        }*/
     }
     return MAE / (double) N;
 }
@@ -96,92 +103,59 @@ double KRR::_loss_ (const vvVectorXd& V, const vVectorXd& F)
     return loss / (double) N;
 }
 
-inline double KRR::_penalized_loss_ (const vvVectorXd& V, const vVectorXd& F)
+/*inline double KRR::_penalized_loss_ (const vvVectorXd& V, const vVectorXd& F)
 {
     return _loss_ (V, F) + lambda * alpha.squaredNorm ();
-}
+}*/
 
-inline double KRR::_kernel_ (const MatrixXd& v1, const MatrixXd& v2, double gamma)
+inline double KRR::_kernel_ (const VectorXd& v1, const VectorXd& v2, double gamma)
 {
     return exp (- gamma * (v1 - v2).squaredNorm ());
 }
 
-MatrixXd KRR::_form_kernel_ (const vMatrixXd& Vt, const vMatrixXd& Vtp)
+vMatrixXd KRR::_form_kernel_ (const vvVectorXd& Vt, const vvVectorXd& Vtp)
 {
-    int Nt = Vt.size (), Ntp = Vtp.size ();
+    int Nt = Vt.size (), Ntp = Vtp.size (), M = Vt[0].size ();
 
-    MatrixXd Kt(Nt, Ntp);
-    int i, j;
-    for (i = 0; i < Nt; i++)    for (j = 0; j < Ntp; j++)
-        Kt(i, j) = _kernel_ (Vt[i], Vtp[j], gamma);
-    return Kt;
+    vMatrixXd Kt_set;
+    for (int mu = 0; mu < M; mu++)
+    {
+        MatrixXd Kt(Nt, Ntp);
+        int i, j;
+        for (i = 0; i < Nt; i++)    for (j = 0; j < Ntp; j++)
+            Kt(i, j) = _kernel_ (Vt[i][mu], Vtp[j][mu], gamma);
+        Kt_set.push_back (Kt);
+    }
+    return Kt_set;
 }
 
-VectorXd KRR::_form_kernel_ (const vMatrixXd& Vt, const MatrixXd& Vtest)
+vVectorXd KRR::_form_kernel_ (const vvVectorXd& Vt, const vVectorXd& Vtest)
 {
     int Nt = Vt.size ();
 
-    VectorXd ktest(Nt);
+    vVectorXd ktest;
     int i;
-    for (i = 0; i < Nt; i++)    ktest(i) = _kernel_ (Vt[i], Vtest, gamma);
-
+    for (int mu = 0; mu < M; mu++)
+    {
+        VectorXd k(Nt);
+        for (i = 0; i < Nt; i++)
+            k(i) = _kernel_ (Vt[i][mu], Vtest[mu], gamma);
+        ktest.push_back (k);
+    }
     return ktest;
 }
 
-MatrixXd KRR::_form_force_mat_ (const vVectorXd& Ft, const vMatrixXd& At)
+vVectorXd _form_Ft_ (const vVectorXd& Ftrain)
 {
-    int Nt = Ft.size (), Neta = At[0].rows ();
-
-    MatrixXd Ft_new(Nt, Neta);
-    VectorXd F_xformed (Neta);
-    for (int i = 0; i < Nt; i++)
+    int N = Ftrain.size (), M = Ftrain[0].rows ();
+    vVectorXd Ft;
+    for (int mu = 0; mu < M; mu++)
     {
-        F_xformed = At[i] * Ft[i];
-        Ft_new.row (i) = F_xformed.transpose ();
+        VectorXd Fmu (N);
+        for (int i = 0; i < N; i++) Fmu(i) = Ftrain[i](mu);
+        Ft.push_back (Fmu);
     }
-    return Ft_new;
-}
-
-vMatrixXd KRR::_fingerprint_xform_ (const vvVectorXd& Vt)
-{
-    int Nt = Vt.size (), M = Vt[0].size (), Neta = Vt[0][0].rows ();
-
-    vMatrixXd Vt_new;
-    MatrixXd V(Neta, M);
-    int mu, i, j;
-    for (i = 0; i < Nt; i++)
-    {
-        for (mu = 0; mu < M; mu++)  for (j = 0; j < Neta; j++)
-            V(j, mu) = Vt[i][mu][j];
-        Vt_new.push_back (V);
-    }
-    return Vt_new;
-}
-
-vMatrixXd KRR::_V_to_A_ (const vMatrixXd& Vt)
-{
-    int Nt = Vt.size (), Neta = Vt[0].rows (), M = Vt[0].cols ();
-
-    vMatrixXd At;
-    MatrixXd Vh(Neta, M);
-    for (int i = 0; i < Nt; i++)
-    {
-        for (int j = 0; j < Neta; j++)
-            Vh.row (j) = Vt[i].row (j) / Vt[i].row (j).norm ();
-        At.push_back (Vh);
-    }
-    return At;
-}
-
-vMatrixXd KRR::_form_X_ (const vMatrixXd& Vt, const vMatrixXd& At)
-{
-    int Nt = Vt.size ();
-
-    vMatrixXd Xt;
-    for (int i = 0; i < Nt; i++)
-        Xt.push_back (Vt[i] * At[i].transpose ());
-
-    return Xt;
+    return Ft;
 }
 
 void KRR::_solve_ (string solver)
@@ -189,20 +163,22 @@ void KRR::_solve_ (string solver)
 //  Though HQ is said to be less accurate than CPHQ,
 //  as far as I can test, there is no difference.
 {
-    Atrain.clear ();    Xtrain.clear ();
-    vMatrixXd Vtrain_new = _fingerprint_xform_ (Vtrain);
-    Atrain = _V_to_A_ (Vtrain_new);
-    Xtrain = _form_X_ (Vtrain_new, Atrain);
+    vMatrixXd Kt = _form_kernel_ (Vtrain, Vtrain);
+    vVectorXd Ft = _form_Ft_ (Ftrain);
 
-    MatrixXd Kt = _form_kernel_ (Xtrain, Xtrain);
-    MatrixXd Ft = _form_force_mat_ (Ftrain, Atrain);
-
-    if (solver == "CPHQ")
-        alpha = (Kt + lambda * Ntrain * MatrixXd::Identity (Ntrain, Ntrain)).
-            colPivHouseholderQr ().solve (Ft);
-    else if (solver == "HQ")
-        alpha = (Kt + lambda * Ntrain * MatrixXd::Identity (Ntrain, Ntrain)).
-            householderQr ().solve (Ft);
+    alpha.clear ();
+    for (int mu = 0; mu < M; mu++)
+    {
+        VectorXd a;
+        if (solver == "CPHQ")
+            a = (/*Kt[mu] * */(Kt[mu] + lambda * Ntrain * MatrixXd::Identity (Ntrain, Ntrain))).
+                colPivHouseholderQr ().solve (/*Kt[mu] * */Ft[mu]);
+        else if (solver == "HQ")
+            a = (/*Kt[mu] * */(Kt[mu] + lambda * Ntrain * MatrixXd::Identity (Ntrain, Ntrain))).
+                householderQr ().solve (/*Kt[mu] * */Ft[mu]);
+        //cout << "alpha[" << mu << "]:\n" << a.transpose () << endl;
+        alpha.push_back (a);
+    }
 
     //printf ("lbd = %5.3e\ttrain MAE = %9.6f\tvalid MAE = %9.6f\t|alpha| = %9.6f\n",
     //    lambda, _MAE_ (Vtrain, Ftrain), _MAE_ (Vvalid, Fvalid),
@@ -234,7 +210,6 @@ vVectorXd KRR::_comput_forces_ (const vvVectorXd& V)
     {
         if (i == 27 /*|| i == 28*/)  flag = true;
         else    flag = false;
-        cout << "flag = " << flag << endl;
         VectorXd pred_F = _predict_F_ (V[i], flag);
         for (int mu = 0; mu < pred_F.rows (); mu++)
             if (fabs (pred_F[mu]) > 1E2)    pred_F[mu] = 0.;

@@ -12,7 +12,7 @@ class KRR
 
     public:
 //  from MLFFTRAIN
-        MatrixXd alpha;
+        vVectorXd alpha;
         double gamma;
         double lambda;
         vVectorXd Fbasis, Ftrain, Fvalid;
@@ -31,12 +31,12 @@ class KRR
         double _MARE_ (const vvVectorXd& V, const vVectorXd& F);
         inline double _penalized_loss_ (const vvVectorXd& V, const vVectorXd& F);
 
-        inline double _kernel_ (const MatrixXd& v1, const MatrixXd& v2, double gamma);
+        inline double _kernel_ (const VectorXd& v1, const VectorXd& v2, double gamma);
         vMatrixXd _fingerprint_xform_ (const vvVectorXd& Vt);
         vMatrixXd _V_to_A_ (const vMatrixXd& Vt);
         vMatrixXd _form_X_ (const vMatrixXd& Vt, const vMatrixXd& At);
-        MatrixXd _form_kernel_ (const vMatrixXd& Vt, const vMatrixXd& Vtp);
-        VectorXd _form_kernel_ (const vMatrixXd& Vt, const MatrixXd& Vtest);
+        vMatrixXd _form_kernel_ (const vvVectorXd& Vt, const vvVectorXd& Vtp);
+        vVectorXd _form_kernel_ (const vvVectorXd& Vt, const vVectorXd& Vtest);
         MatrixXd _form_force_mat_ (const vVectorXd& Ft, const vMatrixXd& At);
         void _solve_ (string);
         void _cmp_forces_ (const vvVectorXd& V, const vVectorXd& F);

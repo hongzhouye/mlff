@@ -168,6 +168,8 @@ void MLFFTRAIN::_1by1_train_ (LATTICE& lat)
         }
         if (drain)  Ntrain = Vtrain_all.size ();
 
+        _write_VF_ (Vtrain_all, Ftrain_all);
+
         cout << endl << endl;
         _fancy_print_ ("basis set finished", 3);
         printf ("%d configs are selected from %d (%5.2f%%)\n", Ntrain,
@@ -241,7 +243,7 @@ void MLFFTRAIN::_app_ (const LATTICE& lat)
     fclose (pVx);   fclose (pVy);   fclose (pVz);
 }
 
-void MLFFTRAIN::_write_VF_ ()
+void MLFFTRAIN::_write_VF_ (const vvVectorXd& V, const vVectorXd& F)
 {
     if (V.size () != F.size ())
     {

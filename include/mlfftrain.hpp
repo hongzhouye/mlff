@@ -46,7 +46,7 @@ class MLFFTRAIN
         void _train_ (LATTICE&);
         void _1by1_train_ (LATTICE&);
         void _app_ (const LATTICE&);
-        void _write_VF_ ();
+        void _write_VF_ (const vvVectorXd&, const vVectorXd&);
 };
 
 #endif

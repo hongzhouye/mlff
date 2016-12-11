@@ -1,7 +1,7 @@
 &lattice
 
 # eta grid
-Neta = 8
+Neta = 20
 eta = 1;10
 
 # lattice parameters in the order
