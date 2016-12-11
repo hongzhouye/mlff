@@ -20,13 +20,13 @@ void _k_fold_partition_ (const vector<T>& v, vector<T>& vp, vector<T>& vr,
 #undef UP
 #undef DOWN
 
-double _mean_ (const vVectorXd& Ft)
+double _abs_mean_ (const dv1& F)
 {
-    int N = Ft.size (), M = Ft[0].rows ();
-    double mean = 0.;
-    for (int i = 0; i < N; i++)
-        mean += Ft[i].array ().abs ().sum () / (double) M;
-    return mean / (double) N;
+    double mean = 0;
+    for (int i = 0; i < F.size (); i++)
+        mean = mean + fabs (F[i]);
+
+    return mean / (double) F.size ();
 }
 
 template <typename T>
@@ -37,28 +37,50 @@ void _insert_ (vector<T>& v1, const vector<T>& v2, const int Ns, const int Nt)
     v1.insert (v1.end (), v2.begin () + Ns, v2.begin () + Ns + Nt - N1);
 }
 
+void _ravel_ (const vvVectorXd& V, const vVectorXd& F,
+    vVectorXd& Vindpt, dv1& Findpt, LATTICE& lat)
+{
+    int N = V.size (), M = V[0].size ();
+
+    Vindpt.clear ();    Findpt.clear ();
+    if (M != F[0].rows ())
+    {
+        cout << "[Error] In _ravel_ (), dim not match!" << endl;
+        exit (1);
+    }
+
+    for (int i = 0; i < N; i++)
+        for (int mu = 0; mu < M; mu++)
+        {
+            Vindpt.push_back (V[i][mu]);    Findpt.push_back (F[i](mu));
+        }
+
+    lat._shuffle_fingerprint_ (Vindpt, Findpt);
+}
+
 void MLFFTRAIN::_form_training_test_set_ (
-    vvVectorXd& Vtrain, vVectorXd& Ftrain,
-    vvVectorXd& Vtest, vVectorXd& Ftest,
+    vVectorXd& Vtrain, dv1& Ftrain,
+    vVectorXd& Vtest, dv1& Ftest,
     LATTICE& lat)
 {
     //lat._form_sanity_set_ (Vtrain, Ftrain, Vtest, Ftest);
-    _insert_ (Vtrain, lat.V, 0, Ntrain);
-    _insert_ (Ftrain, lat.F, 0, Ntrain);
+    _insert_ (Vtrain, Vindpt, 0, Ntrain);
+    _insert_ (Ftrain, Findpt, 0, Ntrain);
     lat._shuffle_fingerprint_ (Vtrain, Ftrain);
-    _insert_ (Vtest, lat.V, Ntrain, Ntest);
-    _insert_ (Ftest, lat.F, Ntrain, Ntest);
+    _insert_ (Vtest, Vindpt, Ntrain, Ntest);
+    _insert_ (Ftest, Findpt, Ntrain, Ntest);
 }
 
 void MLFFTRAIN::_train_ (LATTICE& lat)
 {
-    vvVectorXd Vtrain_all, Vtest;
-    vVectorXd Ftrain_all, Ftest;
+    _ravel_ (lat.V, lat.F, Vindpt, Findpt, lat);
+
+    vVectorXd Vtrain_all, Vtest;
+    dv1 Ftrain_all, Ftest;
     _form_training_test_set_ (Vtrain_all, Ftrain_all, Vtest, Ftest, lat);
 
-    double Ftest_ave = _mean_ (Ftest);
+    double Ftest_ave = _abs_mean_ (Ftest);
     cout << "Ftest_ave = " << Ftest_ave << endl;
-    krr.force_limit = Ftest_ave * 10;
 
     printf ("lambda\t\tvalid MAE\ttest MAE\ttest MARE\n");
     for (auto i = lbd_set.begin (); i < lbd_set.end (); i++)
@@ -89,16 +111,17 @@ void MLFFTRAIN::_train_ (LATTICE& lat)
     }
 }
 
-void _form_testset_ (vvVectorXd& Vtest, vVectorXd& Ftest,
+void _form_testset_ (vVectorXd& Vtest, dv1& Ftest,
+    const vVectorXd& Vindpt, const dv1& Findpt,
     LATTICE& lat, int Ntest, const vector<bool>& online)
 {
     Vtest.clear (); Ftest.clear ();
 
-    vvVectorXd Vpool;   vVectorXd Fpool;
-    for (int i = 0; i < lat.V.size (); i++)
+    vVectorXd Vpool;   dv1 Fpool;
+    for (int i = 0; i < Vindpt.size (); i++)
         if (online[i])
         {
-            Vpool.push_back (lat.V[i]); Fpool.push_back (lat.F[i]);
+            Vpool.push_back (Vindpt[i]); Fpool.push_back (Findpt[i]);
         }
     lat._shuffle_fingerprint_ (Vpool, Fpool);
     if (Ntest > Vpool.size ())  Ntest = Vpool.size ();
@@ -108,9 +131,9 @@ void _form_testset_ (vvVectorXd& Vtest, vVectorXd& Ftest,
 
 void MLFFTRAIN::_1by1_train_ (LATTICE& lat)
 {
-    vvVectorXd Vtrain_all, Vtest;
-    vVectorXd Ftrain_all, Ftest;
-    //_form_training_test_set_ (Vtrain_all, Ftrain_all, Vtest, Ftest, lat);
+    vVectorXd Vtrain_all, Vtest;
+    dv1 Ftrain_all, Ftest;
+    _ravel_ (lat.V, lat.F, Vindpt, Findpt, lat);
 
     //printf ("lambda\t\tvalid MAE\ttest MAE\ttest MARE\n");
     _fancy_print_ ("generating basis", 3);
@@ -122,12 +145,12 @@ void MLFFTRAIN::_1by1_train_ (LATTICE& lat)
         Vtrain_all.clear ();    Vtest.clear ();
         Ftrain_all.clear ();    Ftest.clear ();
 
-        int Ninit = 100;
-        vector<bool> online;    online.assign (lat.V.size (), true);
-        Vtrain_all.assign (lat.V.begin (), lat.V.begin () + Ninit);
-        Ftrain_all.assign (lat.F.begin (), lat.F.begin () + Ninit);
+        int Ninit = 1;
+        vector<bool> online;    online.assign (Vindpt.size (), true);
+        Vtrain_all.assign (Vindpt.begin (), Vindpt.begin () + Ninit);
+        Ftrain_all.assign (Findpt.begin (), Findpt.begin () + Ninit);
         for_each (online.begin (), online.begin () + Ninit,
-                 [](bool d) {d = false;});
+            [](bool d) {d = false;});
 
         int pos = Ninit;
         bool drain = false;
@@ -142,25 +165,25 @@ void MLFFTRAIN::_1by1_train_ (LATTICE& lat)
                 krr._solve_ ("HQ");
             }
 
-            double MAE_pos = krr._MAE_ (lat.V[pos], lat.F[pos]);
+            double MAE_pos = krr._MAE_ (Vindpt[pos], Findpt[pos]);
             if (MAE_pos > Fc)
             {
-                Vtrain_all.push_back (lat.V[pos]);
-                Ftrain_all.push_back (lat.F[pos]);
+                Vtrain_all.push_back (Vindpt[pos]);
+                Ftrain_all.push_back (Findpt[pos]);
                 online[pos] = false;
             }
             printf ("Error = %9.6f\tprocess: %4d/%4d\n",
                 MAE_pos, Vtrain_all.size (), pos);
 
             // process bar
-            double proc1 = (double) pos / lat.V.size ();
+            double proc1 = (double) pos / Vindpt.size ();
             double proc2 = (double) Vtrain_all.size () / Ntrain;
             double proc = (proc1 > proc2) ? (proc1) : (proc2);
 
             _progress_bar_ (proc);
 
             pos ++;
-            if (pos == lat.V.size ())
+            if (pos == Vindpt.size ())
             {
                 drain = true;
                 break;
@@ -168,17 +191,17 @@ void MLFFTRAIN::_1by1_train_ (LATTICE& lat)
         }
         if (drain)  Ntrain = Vtrain_all.size ();
 
-        _write_VF_ (Vtrain_all, Ftrain_all);
+        //_write_VF_ (Vtrain_all, Ftrain_all);
 
         cout << endl << endl;
         _fancy_print_ ("basis set finished", 3);
         printf ("%d configs are selected from %d (%5.2f%%)\n", Ntrain,
-            (drain) ? (pos-1) : (pos), (double) Ntrain / lat.V.size () * 100);
+            (drain) ? (pos) : (pos+1), (double) Ntrain / Vindpt.size () * 100);
 
-        _form_testset_ (Vtest, Ftest, lat, Ntest, online);
+        _form_testset_ (Vtest, Ftest, Vindpt, Findpt, lat, Ntest, online);
         cout << "test set size: " << Vtest.size () << endl;
 
-        double Ftest_ave = _mean_ (Ftest);
+        double Ftest_ave = _abs_mean_ (Ftest);
         cout << "Ftest_ave = " << Ftest_ave << endl;
 
 //  k-fold cross-validation

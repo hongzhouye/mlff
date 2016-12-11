@@ -5,7 +5,7 @@ void KRR::_init_ (double lbd, double gm)
     lambda = lbd;   gamma = gm;
     Ntrain = Vtrain.size ();
     Nvalid = Vvalid.size ();
-    M = Ftrain[0].rows ();
+    //M = Ftrain[0].rows ();
     force_limit = 1E3;
 }
 
@@ -15,24 +15,9 @@ void KRR::_clear_all_ ()
     Vvalid.clear ();    Fvalid.clear ();
 }
 
-inline VectorXd KRR::_predict_F_ (const vVectorXd& Vt, bool flag)
+inline double KRR::_predict_F_ (const VectorXd& Vt, bool flag)
 {
-    VectorXd Ft (M);
-
-    double normVt = 0.;
-    for (int mu = 0; mu < Vt.size (); mu++) normVt += Vt[mu].norm ();
-    if (normVt < 1E-16)
-        Ft.setZero ();
-    else
-    {
-        for (int mu = 0; mu < M; mu++)
-        {
-            vVectorXd kt = _form_kernel_ (Vtrain, Vt);
-            Ft(mu) = alpha[mu].dot (kt[mu]);
-        }
-
-        for (int mu = 0; mu < M; mu++)
-            if (fabs (Ft[mu]) > force_limit) Ft[mu] = 0.;
+    return _form_kernel_ (Vtrain, Vt).dot (alpha);
 
 //        if (flag /*&& Vt[0].norm () + Vt[1].norm () + Vt[2].norm () > 1E-10*/)
 /*        {
@@ -44,19 +29,31 @@ inline VectorXd KRR::_predict_F_ (const vVectorXd& Vt, bool flag)
             cout << "F_xformed:\n" << F_xformed.transpose () << endl << endl;
             cout << "Ft:\n" << Ft.transpose () << endl << endl;
         }*/
-    }
-
-    return Ft;
 }
 
-double KRR::_MAE_ (const vvVectorXd& V, const vVectorXd& F)
+VectorXd KRR::_predict_F_ (const vVectorXd& Vt)
 {
-    int N = V.size (), M = F[0].rows ();
+    M = Vt.size ();
+    VectorXd pred_F(M);
+    for (int mu = 0; mu < M; mu++)
+        pred_F(mu) = _predict_F_ (Vt[mu]);
+    return pred_F;
+}
+
+double KRR::_MAE_ (const vVectorXd& V, dv1& F)
+{
+    Map<VectorXd> Fp(F.data (), F.size ());
+    return _MAE_ (V, Fp);
+}
+
+double KRR::_MAE_ (const vVectorXd& V, const VectorXd& F)
+{
+    int N = V.size ();
     double MAE = 0.;
     for (int i = 0; i < N; i++)
     {
-        VectorXd pred_F = _predict_F_ (V[i]);
-        double error = (pred_F - F[i]).norm ();
+        double pred_F = _predict_F_ (V[i]);
+        double error = fabs (pred_F - F(i));
         MAE += error;
         /*cout << "error: " << error << endl;
         if (error > 1E4)
@@ -71,14 +68,14 @@ double KRR::_MAE_ (const vvVectorXd& V, const vVectorXd& F)
     return MAE / (double) N;
 }
 
-double KRR::_MAE_ (const vVectorXd& V, const VectorXd& F)
+double KRR::_MAE_ (const VectorXd& V, const double F)
 {
-    vvVectorXd Vwrap;   Vwrap.push_back (V);
-    vVectorXd Fwrap;    Fwrap.push_back (F);
+    vVectorXd Vwrap;   Vwrap.push_back (V);
+    VectorXd Fwrap (1);    Fwrap(0) = F;
     return _MAE_ (Vwrap, Fwrap);
 }
 
-double KRR::_MARE_ (const vvVectorXd& V, const vVectorXd& F)
+/*double KRR::_MARE_ (const vvVectorXd& V, const vVectorXd& F)
 {
     int N = V.size (), M = F[0].rows ();
     double MARE = 0.;
@@ -103,7 +100,7 @@ double KRR::_loss_ (const vvVectorXd& V, const vVectorXd& F)
     return loss / (double) N;
 }
 
-/*inline double KRR::_penalized_loss_ (const vvVectorXd& V, const vVectorXd& F)
+inline double KRR::_penalized_loss_ (const vvVectorXd& V, const vVectorXd& F)
 {
     return _loss_ (V, F) + lambda * alpha.squaredNorm ();
 }*/
@@ -113,49 +110,27 @@ inline double KRR::_kernel_ (const VectorXd& v1, const VectorXd& v2, double gamm
     return exp (- gamma * (v1 - v2).squaredNorm ());
 }
 
-vMatrixXd KRR::_form_kernel_ (const vvVectorXd& Vt, const vvVectorXd& Vtp)
+MatrixXd KRR::_form_kernel_ (const vVectorXd& Vt, const vVectorXd& Vtp)
 {
-    int Nt = Vt.size (), Ntp = Vtp.size (), M = Vt[0].size ();
+    int Nt = Vt.size (), Ntp = Vtp.size ();
 
-    vMatrixXd Kt_set;
-    for (int mu = 0; mu < M; mu++)
-    {
-        MatrixXd Kt(Nt, Ntp);
-        int i, j;
-        for (i = 0; i < Nt; i++)    for (j = 0; j < Ntp; j++)
-            Kt(i, j) = _kernel_ (Vt[i][mu], Vtp[j][mu], gamma);
-        Kt_set.push_back (Kt);
-    }
-    return Kt_set;
+    MatrixXd Kt(Nt, Ntp);
+    int i, j;
+    for (i = 0; i < Nt; i++)    for (j = 0; j < Ntp; j++)
+        Kt(i, j) = _kernel_ (Vt[i], Vtp[j], gamma);
+
+    return Kt;
 }
 
-vVectorXd KRR::_form_kernel_ (const vvVectorXd& Vt, const vVectorXd& Vtest)
+VectorXd KRR::_form_kernel_ (const vVectorXd& Vt, const VectorXd& Vtest)
 {
     int Nt = Vt.size ();
 
-    vVectorXd ktest;
     int i;
-    for (int mu = 0; mu < M; mu++)
-    {
-        VectorXd k(Nt);
-        for (i = 0; i < Nt; i++)
-            k(i) = _kernel_ (Vt[i][mu], Vtest[mu], gamma);
-        ktest.push_back (k);
-    }
-    return ktest;
-}
+    VectorXd ktest(Nt);
+    for (i = 0; i < Nt; i++)    ktest(i) = _kernel_ (Vt[i], Vtest, gamma);
 
-vVectorXd _form_Ft_ (const vVectorXd& Ftrain)
-{
-    int N = Ftrain.size (), M = Ftrain[0].rows ();
-    vVectorXd Ft;
-    for (int mu = 0; mu < M; mu++)
-    {
-        VectorXd Fmu (N);
-        for (int i = 0; i < N; i++) Fmu(i) = Ftrain[i](mu);
-        Ft.push_back (Fmu);
-    }
-    return Ft;
+    return ktest;
 }
 
 void KRR::_solve_ (string solver)
@@ -163,39 +138,33 @@ void KRR::_solve_ (string solver)
 //  Though HQ is said to be less accurate than CPHQ,
 //  as far as I can test, there is no difference.
 {
-    vMatrixXd Kt = _form_kernel_ (Vtrain, Vtrain);
-    vVectorXd Ft = _form_Ft_ (Ftrain);
+    MatrixXd Kt = _form_kernel_ (Vtrain, Vtrain);
+    Map<VectorXd> Ft(Ftrain.data (), Ftrain.size ());
 
-    alpha.clear ();
-    for (int mu = 0; mu < M; mu++)
-    {
-        VectorXd a;
-        if (solver == "CPHQ")
-            a = (/*Kt[mu] * */(Kt[mu] + lambda * Ntrain * MatrixXd::Identity (Ntrain, Ntrain))).
-                colPivHouseholderQr ().solve (/*Kt[mu] * */Ft[mu]);
-        else if (solver == "HQ")
-            a = (/*Kt[mu] * */(Kt[mu] + lambda * Ntrain * MatrixXd::Identity (Ntrain, Ntrain))).
-                householderQr ().solve (/*Kt[mu] * */Ft[mu]);
-        //cout << "alpha[" << mu << "]:\n" << a.transpose () << endl;
-        alpha.push_back (a);
-    }
+    if (solver == "CPHQ")
+        alpha = (/*Kt[mu] * */(Kt + lambda * Ntrain * MatrixXd::Identity (Ntrain, Ntrain))).
+            colPivHouseholderQr ().solve (/*Kt[mu] * */Ft);
+    else if (solver == "HQ")
+        alpha = (/*Kt[mu] * */(Kt + lambda * Ntrain * MatrixXd::Identity (Ntrain, Ntrain))).
+            householderQr ().solve (/*Kt[mu] * */Ft);
 
     //printf ("lbd = %5.3e\ttrain MAE = %9.6f\tvalid MAE = %9.6f\t|alpha| = %9.6f\n",
     //    lambda, _MAE_ (Vtrain, Ftrain), _MAE_ (Vvalid, Fvalid),
     //    alpha.norm () / Ntrain);
 }
 
-void KRR::_cmp_forces_ (const vvVectorXd& V, const vVectorXd& F)
+void KRR::_cmp_forces_ (const vVectorXd& V, dv1& Fp)
 {
-    int N = V.size (), M = F[0].rows ();
+    int N = V.size ();
+
+    Map<VectorXd> F(Fp.data (), Fp.size ());
 
     bool flag;
     FILE *p = fopen ("1.dat", "w+");
     for (int i = 0; i < N; i++)
     {
-        VectorXd pred_F = _predict_F_ (V[i]);
-        for (int mu = 0; mu < M; mu++)
-            fprintf (p, "%9.6f\t%9.6f\n", F[i](mu), pred_F (mu));
+        double pred_F = _predict_F_ (V[i]);
+        fprintf (p, "%9.6f\t%9.6f\n", F(i), pred_F);
     }
     fclose (p);
 }
@@ -205,14 +174,11 @@ vVectorXd KRR::_comput_forces_ (const vvVectorXd& V)
     int N = V.size ();
 
     vVectorXd Fapp;
-    bool flag;
     for (int i = 0; i < N; i++)
     {
-        if (i == 27 /*|| i == 28*/)  flag = true;
-        else    flag = false;
-        VectorXd pred_F = _predict_F_ (V[i], flag);
+        VectorXd pred_F = _predict_F_ (V[i]);
         for (int mu = 0; mu < pred_F.rows (); mu++)
-            if (fabs (pred_F[mu]) > 1E2)    pred_F[mu] = 0.;
+            if (fabs (pred_F[mu]) > 1E2)    pred_F(mu) = 0.;
         Fapp.push_back (pred_F);
     }
 

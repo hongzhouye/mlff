@@ -33,6 +33,9 @@ class LATTICE
         void _fingerprint_ (const vvVectorXd& R, vvVectorXd& V, vVectorXd& F);
         void _fingerprint_ (const vvVectorXd& R, vvVectorXd& V);
         void _shuffle_fingerprint_ (vvVectorXd& V, vVectorXd& F);
+        //template <typename T1, typename T2>
+        //void _shuffle_fingerprint_ (vector<T1>& V, vector<T2>& F);
+        void _shuffle_fingerprint_ (vVectorXd& V, dv1& F);
         void _write_VF_ ();
 
         dv1 _rdf_per_cell_ (const vVectorXd& R, double Rc, const dv1& bin);

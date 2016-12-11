@@ -12,11 +12,11 @@ class KRR
 
     public:
 //  from MLFFTRAIN
-        vVectorXd alpha;
+        VectorXd alpha;
         double gamma;
         double lambda;
-        vVectorXd Fbasis, Ftrain, Fvalid;
-        vvVectorXd Vbasis, Vtrain, Vvalid;
+        dv1 Fbasis, Ftrain, Fvalid;
+        vVectorXd Vbasis, Vtrain, Vvalid;
         int Nbasis, Ntrain, Nvalid, M;
         vMatrixXd Atrain, Xtrain;
         double force_limit;
@@ -24,10 +24,12 @@ class KRR
 //  member function
         void _init_ (double, double);
         void _clear_all_ ();
-        inline VectorXd _predict_F_ (const vVectorXd&, bool flag = false);
+        inline double _predict_F_ (const VectorXd& Vt, bool flag = false);
+        VectorXd _predict_F_ (const vVectorXd& Vt);
         double _loss_ (const vvVectorXd& V, const vVectorXd& F);
-        double _MAE_ (const vvVectorXd&, const vVectorXd&);
+        double _MAE_ (const vVectorXd& V, dv1& F);
         double _MAE_ (const vVectorXd& V, const VectorXd& F);
+        double _MAE_ (const VectorXd& V, const double F);
         double _MARE_ (const vvVectorXd& V, const vVectorXd& F);
         inline double _penalized_loss_ (const vvVectorXd& V, const vVectorXd& F);
 
@@ -35,11 +37,11 @@ class KRR
         vMatrixXd _fingerprint_xform_ (const vvVectorXd& Vt);
         vMatrixXd _V_to_A_ (const vMatrixXd& Vt);
         vMatrixXd _form_X_ (const vMatrixXd& Vt, const vMatrixXd& At);
-        vMatrixXd _form_kernel_ (const vvVectorXd& Vt, const vvVectorXd& Vtp);
-        vVectorXd _form_kernel_ (const vvVectorXd& Vt, const vVectorXd& Vtest);
+        MatrixXd _form_kernel_ (const vVectorXd& Vt, const vVectorXd& Vtp);
+        VectorXd _form_kernel_ (const vVectorXd& Vt, const VectorXd& Vtest);
         MatrixXd _form_force_mat_ (const vVectorXd& Ft, const vMatrixXd& At);
         void _solve_ (string);
-        void _cmp_forces_ (const vvVectorXd& V, const vVectorXd& F);
+        void _cmp_forces_ (const vVectorXd& V, dv1& Fp);
         vVectorXd _comput_forces_ (const vvVectorXd& V);
 };
 

@@ -195,8 +195,21 @@ void _shuffle_ (const iv1& ind, vector<T>& x)
     x = X;
 }
 
+//template <typename T1, typename T2>
+//void LATTICE::_shuffle_fingerprint_ (vector<T1>& V, vector<T2>& F)
 void LATTICE::_shuffle_fingerprint_ (vvVectorXd& V, vVectorXd& F)
-{    
+{
+    iv1 indexes (V.size ());
+    iota (indexes.begin (), indexes.end (), 0);
+    srand(time(0));
+    random_shuffle (indexes.begin (), indexes.end ());
+
+    _shuffle_ (indexes, V);
+    _shuffle_ (indexes, F);
+}
+
+void LATTICE::_shuffle_fingerprint_ (vVectorXd& V, dv1& F)
+{
     iv1 indexes (V.size ());
     iota (indexes.begin (), indexes.end (), 0);
     srand(time(0));

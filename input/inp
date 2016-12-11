@@ -10,11 +10,12 @@ lat_len = 16.23;16.23;16.23
 lat_ang = 90.0;90.0;90.0
 
 # cutoff radius
-Rc = 4.23
+Rc = 6.25
+#Rc = 10
 
 # input path and input file range
 #inp_path = input/training/random;1;15
-inp_path = input/training/ding;76;115
+inp_path = input/training/new;226;250
 #inp_path = input/training/md;26;75
 #inp_path = input/training/all;1;40
 #inp_path = input/sanity_check;0;0
@@ -31,25 +32,25 @@ shuffle = true
 &training
 
 # size of test set
-Ntest = 1000
+Ntest = 500
 
 # size of training set
-Ntrain = 1000
+Ntrain = 3000
 
 # force cut off
-Fc = 0.3
+Fc = 0.2
 
 # k-fold cross-validation
 k = 5
 
 # parameter for RBF kernel
-gamma = 1
+gamma = 0.1
 
 # 2-norm regularization parameter grid
 #Nlbd = 10
 #lbd = 1E-15;1E-6
 Nlbd = 1
-lbd = 1E-11;1E-11
+lbd = 1E-10;1E-10
 #Nlbd = 1
 #lbd = 1E-9;1E-9
 

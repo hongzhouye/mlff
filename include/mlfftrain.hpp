@@ -20,8 +20,8 @@ class MLFFTRAIN
 {
     private:
         void _form_training_test_set_ (
-            vvVectorXd& Vtrain, vVectorXd& Ftrain,
-            vvVectorXd& Vtest, vVectorXd& Ftest,
+            vVectorXd& Vtrain, dv1& Ftrain,
+            vVectorXd& Vtest, dv1& Ftest,
             LATTICE& lat);
     public:
 //  from input
@@ -37,6 +37,10 @@ class MLFFTRAIN
         VectorXd alpha;
         vVectorXd F;
         vvVectorXd V;
+
+//  xyz independent
+        dv1 Findpt;
+        vVectorXd Vindpt;
 
 //  Kernel ridge regression class
         KRR krr;
