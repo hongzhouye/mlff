@@ -51,9 +51,10 @@ void _ravel_ (const vvVectorXd& V, const vVectorXd& F,
 
     for (int i = 0; i < N; i++)
         for (int mu = 0; mu < M; mu++)
-        {
-            Vindpt.push_back (V[i][mu]);    Findpt.push_back (F[i](mu));
-        }
+            if (fabs (F[i](mu)) < lat.Fmax)
+            {
+                Vindpt.push_back (V[i][mu]);    Findpt.push_back (F[i](mu));
+            }
 
     lat._shuffle_fingerprint_ (Vindpt, Findpt);
 }
@@ -103,11 +104,12 @@ void MLFFTRAIN::_train_ (LATTICE& lat)
         krr.Vtrain = Vtrain_all;    krr.Ftrain = Ftrain_all;
         krr._init_ (lbd, gamma);
         krr._solve_ ("HQ");
-        krr._cmp_forces_ (Vtest, Ftest);
+        krr._cmp_forces_ (Vtest, Ftest, cmp_force);
 
         double test_MAE = krr._MAE_ (Vtest, Ftest);
-        printf ("%5.3e\t%9.6f\t%9.6f\t%9.6f\n",
-            lbd, valid_MAE / K, test_MAE, test_MAE / Ftest_ave);
+        double test_MAX = krr._MAX_ (Vtest, Ftest);
+        printf ("%5.3e\t%9.6f\t%9.6f\t%9.6f\t%9.6f\n",
+            lbd, valid_MAE / K, test_MAE, test_MAE / Ftest_ave, test_MAX);
     }
 }
 
@@ -220,11 +222,12 @@ void MLFFTRAIN::_1by1_train_ (LATTICE& lat)
         krr.Vtrain = Vtrain_all;    krr.Ftrain = Ftrain_all;
         krr._init_ (lbd, gamma);
         krr._solve_ ("HQ");
-        krr._cmp_forces_ (Vtest, Ftest);
+        krr._cmp_forces_ (Vtest, Ftest, cmp_force);
 
         double test_MAE = krr._MAE_ (Vtest, Ftest);
-        printf ("%5.3e\t%9.6f\t%9.6f\t%9.6f\n",
-            lbd, valid_MAE / K, test_MAE, test_MAE / Ftest_ave);
+        double test_MAX = krr._MAX_ (Vtest, Ftest);
+        printf ("%5.3e\t%9.6f\t%9.6f\t%9.6f\t%9.6f\n",
+            lbd, valid_MAE / K, test_MAE, test_MAE / Ftest_ave, test_MAX);
     }
 }
 

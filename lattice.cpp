@@ -275,7 +275,6 @@ void LATTICE::_gen_rdf_ (int nbin)
     for (int i = 0; i < R.size (); i++)
     {
         rdf_per_cell = _rdf_per_cell_ (R[i], Rc, bin);
-        //cout << "rdf.size = " << rdf_per_cell.size () << endl;
         for (int j = 0; j < nbin; j++)  rdf[j] += rdf_per_cell[j];
     }
     for (int j = 0; j < nbin; j++)

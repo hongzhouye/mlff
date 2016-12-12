@@ -1,11 +1,11 @@
 &lattice
 
 # peaks on rdf
-#Rp = 2.343;3.825;5.410;5.895;6.626;7.028;7.651 
-Rp = 2.343;3.825;5.410;5.895
+#Rp = 2.343;3.825;4.486;5.410;5.895;6.626;7.028;7.651 
+Rp = 2.343;3.825;4.486;5.410;5.895
 
 # band width
-eta = 0.5;1.0
+eta = 0.5;1.5
 
 # lattice parameters in the order
 # a;b;c and alpha;beta;gamma
@@ -13,19 +13,23 @@ lat_len = 16.23;16.23;16.23
 lat_ang = 90.0;90.0;90.0
 
 # cutoff radius
-Rc = 7.0
+Rc = 4.0
 #Rc = 10
+
+# max force
+Fmax = 5
 
 # input path and input file range
 #inp_path = input/training/random;1;15
 #inp_path = input/training/new;226;250
-inp_path = input/training/ding;141;165
+#inp_path = input/training/ding;106;130
+inp_path = input/training/rep;1;53
 #inp_path = input/training/md;26;75
 #inp_path = input/training/all;1;40
 #inp_path = input/sanity_check;0;0
 
 # if true, write fingerprints to out_path
-write = false 
+write = true
 out_path = output
 
 # if true, shuffle the input data [RECOMMENDED]
@@ -42,21 +46,21 @@ Ntest = 2000
 Ntrain = 2000
 
 # force cut off
-Fc = 0.5
+Fc = 0.3
 
 # k-fold cross-validation
 k = 5
 
 # parameter for RBF kernel
-gamma = 1
+gamma = 0.2
 
 # 2-norm regularization parameter grid
-#Nlbd = 10
-#lbd = 1E-15;1E-6
-#Nlbd = 1
-#lbd = 1E-10;1E-10
+#Nlbd = 11
+#lbd = 1E-16;1E-6
 Nlbd = 1
-lbd = 1E-9;1E-9
+lbd = 1E-14;1E-14
+#Nlbd = 1
+#lbd = 1E-9;1E-9
 
 &end
 

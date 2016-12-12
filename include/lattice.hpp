@@ -20,6 +20,7 @@ class LATTICE
         double Rc;
         string out_path, out_path_app;
         bool shuf, write;
+        double Fmax;
 
 //  read from data file
         vvVectorXd R, Rapp, Rsanity;

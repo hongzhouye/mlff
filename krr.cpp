@@ -68,6 +68,25 @@ double KRR::_MAE_ (const vVectorXd& V, const VectorXd& F)
     return MAE / (double) N;
 }
 
+double KRR::_MAX_ (const vVectorXd& V, dv1& F)
+{
+    Map<VectorXd> Fp(F.data (), F.size ());
+    return _MAX_ (V, Fp);
+}
+
+double KRR::_MAX_ (const vVectorXd& V, const VectorXd& F)
+{
+    int N = V.size ();
+    double MAX = 0.;
+    for (int i = 0; i < N; i++)
+    {
+        double pred_F = _predict_F_ (V[i]);
+        double max = fabs (pred_F - F(i));
+        if (max > MAX)  MAX = max;
+    }
+    return MAX;
+}
+
 double KRR::_MAE_ (const VectorXd& V, const double F)
 {
     vVectorXd Vwrap;   Vwrap.push_back (V);
@@ -153,14 +172,14 @@ void KRR::_solve_ (string solver)
     //    alpha.norm () / Ntrain);
 }
 
-void KRR::_cmp_forces_ (const vVectorXd& V, dv1& Fp)
+void KRR::_cmp_forces_ (const vVectorXd& V, dv1& Fp, const string& fname)
 {
     int N = V.size ();
 
     Map<VectorXd> F(Fp.data (), Fp.size ());
 
     bool flag;
-    FILE *p = fopen ("1.dat", "w+");
+    FILE *p = fopen (fname.c_str (), "w+");
     for (int i = 0; i < N; i++)
     {
         double pred_F = _predict_F_ (V[i]);

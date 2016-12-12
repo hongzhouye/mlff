@@ -29,6 +29,8 @@ class KRR
         double _loss_ (const vvVectorXd& V, const vVectorXd& F);
         double _MAE_ (const vVectorXd& V, dv1& F);
         double _MAE_ (const vVectorXd& V, const VectorXd& F);
+        double _MAX_ (const vVectorXd& V, dv1& F);
+        double _MAX_ (const vVectorXd& V, const VectorXd& F);
         double _MAE_ (const VectorXd& V, const double F);
         double _MARE_ (const vvVectorXd& V, const vVectorXd& F);
         inline double _penalized_loss_ (const vvVectorXd& V, const vVectorXd& F);
@@ -41,7 +43,7 @@ class KRR
         VectorXd _form_kernel_ (const vVectorXd& Vt, const VectorXd& Vtest);
         MatrixXd _form_force_mat_ (const vVectorXd& Ft, const vMatrixXd& At);
         void _solve_ (string);
-        void _cmp_forces_ (const vVectorXd& V, dv1& Fp);
+        void _cmp_forces_ (const vVectorXd& V, dv1& Fp, const string&);
         vVectorXd _comput_forces_ (const vvVectorXd& V);
 };
 

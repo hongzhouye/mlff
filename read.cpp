@@ -97,6 +97,8 @@ void _read_inp_ (string& fname, LATTICE& lat, MLFFTRAIN& fft)
                     }
                     else if (_uppercase_ (spline[0]) == "RC")
                         lat.Rc = stod (spline[1]);
+                    else if (_uppercase_ (spline[0]) == "FMAX")
+                        lat.Fmax = stod (spline[1]);
                     else if (_uppercase_ (spline[0]) == "INP_PATH")
                     {
                         vs temp = _split_ (spline[1], ';');
@@ -255,8 +257,7 @@ void _read_data_ (string& path, int start, int end,
                     r(i) = stod (spline[i]);
                     f(i) = stod (spline[i + 3]);
                 }
-                R.push_back (r);
-                F.push_back (f);
+                R.push_back (r);    F.push_back (f);
             }
         }
         else
