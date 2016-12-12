@@ -14,7 +14,7 @@ class LATTICE
         iv2 _form_index_ (const vvVectorXd& V);
     public:
 //  read from input file
-        int Neta;
+        dv1 Rp;
         dv1 eta;
         dv1 lat_len, lat_ang;
         double Rc;

@@ -114,6 +114,22 @@ inline double _cut_off_f_ (double R, double Rc)
     return (R > Rc) ? (0.) : (0.5 * (cos (M_PI * R / Rc) + 1.));
 }
 
+inline double _sigmoid_ (const double r, const double rp, const double eta)
+{
+    return 1. / (1. + exp ((r - rp) / eta));
+}
+
+VectorXd _form_fingerprint_ij_ (const double r, const dv1& rp, const dv1& eta)
+{
+    int Np = rp.size (), Neta = eta.size ();
+    VectorXd f(Np * Neta);
+    for (int i = 0; i < Np; i++)
+        for (int j = 0; j < Neta; j++)
+            f(i * Neta + j) = _sigmoid_ (r, rp[i], eta[j]);
+
+    return f;
+}
+
 vvVectorXd LATTICE::_R_to_V_ (const vVectorXd& R, double Rc, const dv1& eta)
 {
     int N = R.size (), M = R[0].size ();
@@ -127,26 +143,21 @@ vvVectorXd LATTICE::_R_to_V_ (const vVectorXd& R, double Rc, const dv1& eta)
     vvVectorXd V;
     for (int i = 0; i < N; i++)
     {
-//  iterate over atoms
-        vVectorXd Vi;
+//  iterate over "central" atoms i
+        vVectorXd Vi(M);
         for (int mu = 0; mu < M; mu++)
+            Vi[mu].setZero (Rp.size () * eta.size ());
+
+        for (int j = 0; j < ndist[i].size (); j++)
         {
-//  iterate over x, y, z
-            VectorXd Vimu;   Vimu.setZero (eta.size ());
-            for (int ind = 0; ind < eta.size (); ind++)
-            {
-//  iterate over components of eta
-                double Vimu_eta = 0., et = eta[ind];
-                for (int j = 0; j < ndR[i].size (); j++)
-                {
-//  iterate over neighbors
-                    double r = ndist[i][j], x = ndR[i][j][mu];
-                    Vimu_eta += exp (- (r * r / (et * et)))
-                        * _cut_off_f_(r, Rc) * x / r;
-                }
-                Vimu(ind) = Vimu_eta;
-            }
-            Vi.push_back (Vimu);
+//  iterate over "neighboring" atoms j
+            double r = ndist[i][j];
+            VectorXd f_ij = _form_fingerprint_ij_ (r, Rp, eta) *
+                _cut_off_f_(r, Rc) / r;
+
+            for (int mu = 0; mu < M; mu++)
+//  iterate over x, y and z
+                Vi[mu] += f_ij * ndR[i][j][mu];
         }
         V.push_back (Vi);
     }
@@ -156,9 +167,9 @@ vvVectorXd LATTICE::_R_to_V_ (const vVectorXd& R, double Rc, const dv1& eta)
 
 void LATTICE::_print_ ()
 {
-    cout << "#eta grid:" << endl;
+    /*cout << "#eta grid:" << endl;
     for (int i = 0; i < Neta; i++)  printf ("%5.3e  ", eta[i]);
-    cout << endl;
+    cout << endl;*/
 }
 
 void LATTICE::_fingerprint_ (const vvVectorXd& R, vvVectorXd& V, vVectorXd& F)

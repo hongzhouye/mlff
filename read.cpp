@@ -69,20 +69,19 @@ void _read_inp_ (string& fname, LATTICE& lat, MLFFTRAIN& fft)
                     if (_uppercase_ (line) == "&END")   break;
 
                     spline = _split_eq_ (line);
-                    if (_uppercase_ (spline[0]) == "NETA")
+                    if (_uppercase_ (spline[0]) == "RP")
                     {
-                        lat.Neta = (int) stod (spline[1]);
-                        lat.eta.assign (fft.Neta, 0.);
+                        vs temp = _split_ (spline[1], ';');
+                        lat.Rp.clear ();
+                        for (int i = 0; i < temp.size (); i++)
+                            lat.Rp.push_back (stod (temp[i]));
                     }
                     else if (_uppercase_ (spline[0]) == "ETA")
                     {
                         vs temp = _split_ (spline[1], ';');
-                        _log_space_ (lat.eta, lat.Neta,
-                            stod (temp[0]), stod (temp[1]));
-                        _fancy_print_ ("eta grid");
-                        for (int i = 0; i < lat.eta.size (); i++)
-                            printf ("%4.1e ", lat.eta[i]);
-                        cout << endl << endl;
+                        lat.eta.clear ();
+                        for (int i = 0; i < temp.size (); i++)
+                            lat.eta.push_back (stod (temp[i]));
                     }
                     else if (_uppercase_ (spline[0]) == "LAT_LEN")
                     {
