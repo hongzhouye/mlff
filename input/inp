@@ -19,7 +19,8 @@ Rc = 7.0
 # input path and input file range
 #inp_path = input/training/random;1;15
 #inp_path = input/training/new;226;250
-inp_path = input/training/md;26;75
+inp_path = input/training/ding;141;165
+#inp_path = input/training/md;26;75
 #inp_path = input/training/all;1;40
 #inp_path = input/sanity_check;0;0
 
@@ -35,13 +36,13 @@ shuffle = true
 &training
 
 # size of test set
-Ntest = 1000
+Ntest = 2000
 
 # size of training set
 Ntrain = 2000
 
 # force cut off
-Fc = 0.2
+Fc = 0.5
 
 # k-fold cross-validation
 k = 5
@@ -52,10 +53,10 @@ gamma = 1
 # 2-norm regularization parameter grid
 #Nlbd = 10
 #lbd = 1E-15;1E-6
-Nlbd = 1
-lbd = 1E-10;1E-10
 #Nlbd = 1
-#lbd = 1E-9;1E-9
+#lbd = 1E-10;1E-10
+Nlbd = 1
+lbd = 1E-9;1E-9
 
 &end
 
