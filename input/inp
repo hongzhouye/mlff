@@ -2,7 +2,7 @@
 
 # peaks on rdf
 #Rp = 2.343;3.825;4.486;5.410;5.895;6.626;7.028;7.651 
-Rp = 2.343;3.825;4.486;5.410;5.895
+Rp = 2.343;3.825;4.486;5.410;5.895;6.626;7.028;7.651
 
 # band width
 eta = 0.5;1.5
@@ -22,7 +22,7 @@ Fmax = 5
 # input path and input file range
 #inp_path = input/training/random;1;15
 #inp_path = input/training/new;226;250
-#inp_path = input/training/ding;106;130
+#inp_path = input/training/ding;93;130
 inp_path = input/training/rep;1;53
 #inp_path = input/training/md;26;75
 #inp_path = input/training/all;1;40
@@ -46,13 +46,13 @@ Ntest = 2000
 Ntrain = 2000
 
 # force cut off
-Fc = 0.3
+Fc = 0.5
 
 # k-fold cross-validation
 k = 5
 
 # parameter for RBF kernel
-gamma = 0.2
+gamma = 0.1
 
 # 2-norm regularization parameter grid
 #Nlbd = 11

@@ -165,11 +165,26 @@ vvVectorXd LATTICE::_R_to_V_ (const vVectorXd& R, double Rc, const dv1& eta)
     return V;
 }
 
-void LATTICE::_print_ ()
+void _remove_large_force_ (vvVectorXd& V, vVectorXd& F, double Fmax)
 {
-    /*cout << "#eta grid:" << endl;
-    for (int i = 0; i < Neta; i++)  printf ("%5.3e  ", eta[i]);
-    cout << endl;*/
+    int N = V.size (), M = V[0].size ();
+
+    vvVectorXd Vnew;    vVectorXd Fnew;
+    for (int i = 0; i < N; i++)
+    {
+        bool flag = true;
+        for (int mu = 0; mu < M; mu++)
+            if (fabs (F[i](mu)) > Fmax)
+            {
+                flag = false;   break;
+            }
+        if (flag)
+        {
+            Vnew.push_back (V[i]);  Fnew.push_back (F[i]);
+        }
+    }
+    V.assign (Vnew.begin (), Vnew.end ());
+    F.assign (Fnew.begin (), Fnew.end ());
 }
 
 void LATTICE::_fingerprint_ (const vvVectorXd& R, vvVectorXd& V, vVectorXd& F)
@@ -179,6 +194,7 @@ void LATTICE::_fingerprint_ (const vvVectorXd& R, vvVectorXd& V, vVectorXd& F)
         vvVectorXd V0 = _R_to_V_ (R[i], Rc, eta);
         V.insert (V.end (), V0.begin (), V0.end ());
     }
+    _remove_large_force_ (V, F, Fmax);
     if (shuf)   _shuffle_fingerprint_ (V, F);
     if (write)  _write_VF_ ();
 }

@@ -21,7 +21,7 @@ int main (int argc, char *argv[])
     //lat._fingerprint_ (lat.Rapp, lat.Vapp);
     //lat._gen_rdf_ (200);
 	//fft._1by1_train_ (lat);
-    //fft._train_ (lat);
+    fft._train_ (lat);
     //fft._app_ (lat);
 
     return 0;

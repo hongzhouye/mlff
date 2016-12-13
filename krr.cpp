@@ -196,8 +196,6 @@ vVectorXd KRR::_comput_forces_ (const vvVectorXd& V)
     for (int i = 0; i < N; i++)
     {
         VectorXd pred_F = _predict_F_ (V[i]);
-        for (int mu = 0; mu < pred_F.rows (); mu++)
-            if (fabs (pred_F[mu]) > 1E2)    pred_F(mu) = 0.;
         Fapp.push_back (pred_F);
     }
 
